@@ -1,0 +1,21 @@
+
+- Camera
+	- View matrix4x4
+	- Projection matrix4x4
+- Scene
+	- Transform
+		- Model matrix4x4
+	- Renderer
+		- Material
+			- Shader
+		- Mesh
+			- Vertices Vector4
+			- Triangles int32
+			- Uvs Vector2
+			- Colors Color32
+- Render Pipeline
+	- [rasteriser](docs/render_pipelines/rasteriser)
+	- [raytracer](docs/render_pipelines/raytracer)
+- Window
+	- Presents the rendered image to screen
+	- Receives input from user to move the camera
