@@ -1,9 +1,9 @@
 Rasteriser
-		- Cull scene models based on camera frustum and model AABB
-			- For each model in frustum
-				- Load material
-					- Visit each triangle
-						- Rasterise each triangle using material
+- Cull scene models based on camera frustum and model AABB
+	- For each model in frustum
+		- Load material
+			- Visit each triangle
+				- Rasterise each triangle using material
 
 Input
 	MVP, Model View Projection matrix

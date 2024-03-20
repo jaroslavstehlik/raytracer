@@ -14,8 +14,8 @@
 			- Uvs Vector2
 			- Colors Color32
 - Render Pipeline
-	- [rasteriser](docs/render_pipelines/rasteriser.md)
-	- [raytracer](docs/render_pipelines/raytracer.md)
+	- [rasteriser](render_pipelines/rasteriser.md)
+	- [raytracer](render_pipelines/raytracer.md)
 - Window
 	- Presents the rendered image to screen
 	- Receives input from user to move the camera

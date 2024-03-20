@@ -1,10 +1,10 @@
 Raytracer
-		- For each ray per pixel.
-			- Traverse scene
-				- Visit each model
-					- Load material
-						- Visit each triangle
-							- Render intersecting triangle using material
+- For each ray per pixel.
+	- Traverse scene
+		- Visit each model
+			- Load material
+				- Visit each triangle
+					- Render intersecting triangle using material
 
 Input
 	world space acceleration structure
