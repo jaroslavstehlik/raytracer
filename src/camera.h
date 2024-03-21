@@ -18,13 +18,17 @@ public:
     const glm::vec3& GetPosition() const;
     void SetPosition(const glm::vec3& position);
     void SetRotation(const glm::vec3& rotation);
+    float GetVerticalFov() const;
     void SetVerticalFov(float fov);
+    float GetNearClipPlane() const;
     void SetNearClipPlane(float near_clip_plane);
+    float GetFarClipPlane() const;
     void SetFarClipPlane(float far_clip_plane);
+    float GetAspectRatio() const;
     void SetAspectRatio(float aspect_ratio);
 
-    glm::mat4x4 GetViewMatrix();
-    glm::mat4x4 GetProjectionMatrix();
+    [[nodiscard]] glm::mat4x4 GetViewMatrix() const;
+    [[nodiscard]] glm::mat4x4 GetProjectionMatrix() const;
 };
 
 

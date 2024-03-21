@@ -16,6 +16,6 @@ bool sphere_renderer::Intersects(const ray &ray, float raycast_distance) const {
     glm::vec3 localPosition = transform_.position - ray.origin;
     glm::vec3 closestPoint = ray.origin + ray.direction * std::clamp(glm::dot(ray.direction, localPosition), 0.f, raycast_distance);
 
-    float distance = glm::distance(localPosition, closestPoint);
+    float distance = glm::distance(transform_.position, closestPoint);
     return distance <= radius_;
 }
