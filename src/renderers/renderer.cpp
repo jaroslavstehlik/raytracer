@@ -11,6 +11,6 @@ const transform &renderer::GetTransform() const {
     return transform_;
 }
 
-bool renderer::Intersects(const ray &ray, float raycast_distance) const {
+bool renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float raycast_distance) const {
     return false;
 }

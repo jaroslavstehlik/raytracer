@@ -12,7 +12,7 @@ private:
 
 public:
     void SetRadius(float radius);
-    [[nodiscard]] bool Intersects(const ray &ray, float raycast_distance) const override;
+    [[nodiscard]] bool Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float raycast_distance) const override;
 };
 
 #endif //RENDERER_SPHERE_RENDERER_H
