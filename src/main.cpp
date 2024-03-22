@@ -3,21 +3,23 @@
 //
 
 #define GLM_ENABLE_EXPERIMENTAL
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include <iostream>
 #include "scene.h"
 #include "camera.h"
 #include "renderers/sphere_renderer.h"
+#include "stb_image_write.h"
 
 void CoutVector3(const char* name, const glm::vec3& pos)
 {
     std::cout << name << "x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << std::endl;
 }
 
-void RaycastCamera(const scene& scene_, const camera& camera_,
+void RaycastCamera(const scene& scene_, const camera& camera_, std::vector<u_char>& output_data,
                    int width, int height, float raycast_distance = 10.f) {
 
     const int total_pixels = width * height;
-    std::string line = "";
 
     glm::mat4x4 p = camera_.GetProjectionMatrix();
     glm::mat4x4 v = camera_.GetViewMatrix();
@@ -49,33 +51,45 @@ void RaycastCamera(const scene& scene_, const camera& camera_,
             intersects |= renderer->Intersects(ray_, raycast_distance);
         }
 
-        if(x == 0) {
-            std::cout << line << std::endl;
-            line = "";
-        }
-
-        line += std::to_string(intersects);
+        output_data.emplace_back(intersects * 255);
     }
 }
 
 int main() {
+    // setup scene
     sphere_renderer sphere {};
-    sphere.SetRadius(0.5f);
-    sphere.SetTransform({glm::vec3(0.0f, 0.0f, 0.0f),
+    sphere.SetRadius(0.1f);
+    sphere.SetTransform({glm::vec3(-0.2f, 0.0f, 0.0f),
+                         glm::vec3(0, 0, 0),
+                         glm::vec3(1, 1, 1)});
+
+    sphere_renderer sphere2 {};
+    sphere2.SetRadius(0.1f);
+    sphere2.SetTransform({glm::vec3(0.2f, 0.0f, 0.0f),
                          glm::vec3(0, 0, 0),
                          glm::vec3(1, 1, 1)});
 
     scene scene_{};
     scene_.AddRenderer(std::make_shared<sphere_renderer>(sphere));
+    scene_.AddRenderer(std::make_shared<sphere_renderer>(sphere2));
+
+    const int32_t width = 512;
+    const int32_t height = 512;
 
     camera camera_{};
     camera_.SetPosition(glm::vec3(0.f, 0.f, -1.f));
     camera_.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
-    camera_.SetAspectRatio(1.f);
+    camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
     camera_.SetFarClipPlane(10.f);
     camera_.SetVerticalFov(60.f);
 
-    RaycastCamera(scene_, camera_, 32, 32);
+    // raycast camera
+    std::vector<u_char> output_data{};
+    RaycastCamera(scene_, camera_, output_data, width, height);
+
+    // save image to drive
+    const int32_t channel_count = 1;
+    stbi_write_png("image.png", width, height, channel_count, output_data.data(), width * channel_count);
     return 0;
 }

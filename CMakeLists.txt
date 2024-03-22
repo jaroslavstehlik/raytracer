@@ -24,6 +24,16 @@ FetchContent_Declare(
 FetchContent_GetProperties(glm)
 FetchContent_MakeAvailable(glm)
 
+#STB
+include(FetchContent)
+FetchContent_Declare(
+        stb
+        GIT_REPOSITORY https://github.com/nothings/stb.git
+#        GIT_TAG ae721c50eaf761660b4f90cc590453cdb0c2acd0
+)
+FetchContent_GetProperties(stb)
+FetchContent_MakeAvailable(stb)
+
 include_directories(renderer PRIVATE src/include)
 
 # renderer
@@ -45,4 +55,6 @@ add_executable(renderer "src/main.cpp"
         src/include/transform.cpp
 )
 
-target_include_directories(renderer PRIVATE ${glm_SOURCE_DIR})
+target_include_directories(renderer PRIVATE
+        ${glm_SOURCE_DIR}
+        ${stb_SOURCE_DIR})
