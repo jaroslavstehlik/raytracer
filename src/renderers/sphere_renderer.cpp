@@ -5,11 +5,11 @@
 #include "sphere_renderer.h"
 #include "algorithm"
 
-void sphere_renderer::SetRadius(float radius) {
+void cg::sphere_renderer::SetRadius(float radius) {
     radius_ = radius;
 }
 
-bool sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float raycast_distance) const {
+bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
     // Analytical
 
     float raySphereDotProduct = glm::dot(ray.direction, transform_.position - ray.origin);
@@ -27,10 +27,10 @@ bool sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::v
     float intersectionDistance = sqrt(radius2 - distanceSqr);
     intersection = projectedPoint - ray.direction * intersectionDistance;
     glm::vec3 furthestIntersection = projectedPoint + ray.direction * intersectionDistance;
-    float distance = raySphereDotProduct - intersectionDistance;
+    raycast_distance = raySphereDotProduct - intersectionDistance;
 
-    if(distance < 0.f ||
-       distance > raycast_distance)
+    if(raycast_distance < 0.f ||
+        raycast_distance > max_distance)
         return false;
 
     normal = glm::normalize(intersection - transform_.position);

@@ -10,12 +10,14 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-struct transform {
-    glm::vec3 position;
-    glm::vec3 rotation;
-    glm::vec3 scale;
+namespace cg {
+    struct transform {
+        glm::vec3 position;
+        glm::vec3 rotation;
+        glm::vec3 scale;
 
-    glm::mat4x4 ObjectToWorldMatrix() const;
-};
+        glm::mat4x4 ObjectToWorldMatrix() const;
+    };
+}
 
 #endif //RENDERER_TRANSFORM_H

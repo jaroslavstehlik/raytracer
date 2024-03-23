@@ -5,10 +5,11 @@
 #ifndef RENDERER_MESH_RENDERER_H
 #define RENDERER_MESH_RENDERER_H
 
+namespace cg {
+    class mesh_renderer {
 
-class mesh_renderer {
-
-};
+    };
+}
 
 
 #endif //RENDERER_MESH_RENDERER_H

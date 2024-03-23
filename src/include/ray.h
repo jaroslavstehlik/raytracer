@@ -6,10 +6,11 @@
 #define RENDERER_RAY_H
 #include <glm/vec3.hpp>
 
-struct ray
-{
-    glm::vec3 origin;
-    glm::vec3 direction;
-};
+namespace cg {
+    struct ray {
+        glm::vec3 origin;
+        glm::vec3 direction;
+    };
+}
 
 #endif //RENDERER_RAY_H

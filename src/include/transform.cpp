@@ -4,7 +4,7 @@
 
 #include "transform.h"
 
-glm::mat4x4 transform::ObjectToWorldMatrix() const {
+glm::mat4x4 cg::transform::ObjectToWorldMatrix() const {
     glm::mat4x4 translate_matrix = glm::translate(
             glm::mat4x4(1.0),
             glm::vec3 (position.x, position.y, position.z));

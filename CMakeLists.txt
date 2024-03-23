@@ -53,6 +53,10 @@ add_executable(renderer "src/main.cpp"
         src/include/transform.h
         src/renderers/renderer.cpp
         src/include/transform.cpp
+        src/lights/light.cpp
+        src/lights/light.h
+        src/lights/point_light.cpp
+        src/lights/point_light.h
 )
 
 target_include_directories(renderer PRIVATE

@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "renderers/sphere_renderer.h"
+#include "lights/point_light.h"
 #include "stb_image_write.h"
 
 void CoutVector3(const char* name, const glm::vec3& pos)
@@ -26,8 +27,52 @@ glm::vec3 PointLight(const glm::vec3& light_position, const glm::vec3& intersect
     return color * light_normalized;
 }
 
-void RaycastCamera(const scene& scene_, const camera& camera_, std::vector<u_char>& output_data,
-                   int width, int height, float raycast_distance = 10.f) {
+bool IntersectRenderers(const cg::ray& ray,
+                      const cg::scene& scene,
+                      float max_raycast_distance)
+{
+    for(const std::shared_ptr<cg::renderer>& renderer : scene.GetRenderers()) {
+        glm::vec3 local_intersection{};
+        glm::vec3 local_normal{};
+        float local_raycast_distance{};
+        if(renderer->Intersects(ray, local_intersection, local_normal, local_raycast_distance, max_raycast_distance))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RaycastRenderers(const cg::ray& ray,
+                      const cg::scene& scene,
+                      glm::vec3& intersection,
+                      glm::vec3& normal,
+                      float& raycast_distance,
+                      float max_raycast_distance)
+{
+    float shortest_intersection = std::numeric_limits<float>::max();
+
+    for(const std::shared_ptr<cg::renderer>& renderer : scene.GetRenderers()) {
+        glm::vec3 local_intersection{};
+        glm::vec3 local_normal{};
+        float local_raycast_distance{};
+        if(renderer->Intersects(ray, local_intersection, local_normal, local_raycast_distance, max_raycast_distance))
+        {
+            if(local_raycast_distance < shortest_intersection)
+            {
+                shortest_intersection = local_raycast_distance;
+                raycast_distance = local_raycast_distance;
+                intersection = local_intersection;
+                normal = local_normal;
+            }
+        }
+    }
+
+    return shortest_intersection != std::numeric_limits<float>::max();
+}
+
+void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vector<u_char>& output_data,
+                   int width, int height, float max_raycast_distance = 10.f) {
 
     const int total_pixels = width * height;
 
@@ -54,22 +99,27 @@ void RaycastCamera(const scene& scene_, const camera& camera_, std::vector<u_cha
         destFar.z /= destFar.w;
 
         glm::vec3 direction = glm::normalize(glm::vec3(destFar) - glm::vec3(destNear));
-        ray ray_ {destNear, direction};
+        cg::ray ray_ {destNear, direction};
 
-        bool intersects = false;
+        // raycast
         glm::vec3 intersection{};
         glm::vec3 normal{};
+        float raycast_distance{};
 
-        for(const std::shared_ptr<renderer>& renderer : scene_.GetRenderers()) {
-            intersects |= renderer->Intersects(ray_, intersection, normal, raycast_distance);
-        }
-
-        if(intersects) {
+        if(RaycastRenderers(ray_, scene_, intersection, normal, raycast_distance, max_raycast_distance)) {
             glm::vec3 color{};
 
-            color += PointLight({0.f, 1.f, -0.5f}, intersection, normal, {1.f, 0.f, 0.f});
-            color += PointLight({0.f, -1.f, -0.5f}, intersection, normal, {0.f, 0.f, 1.f});
+            for(const std::shared_ptr<cg::light>& light : scene_.GetLights()) {
+                glm::vec3 light_direction = glm::normalize(light->GetTransform().position - intersection);
+                float light_distance = glm::distance(light->GetTransform().position, intersection);
 
+                cg::ray light_ray {intersection, light_direction};
+                if(!IntersectRenderers(light_ray, scene_, light_distance)) {
+                    color += light->GetColor(light_ray, normal);
+                }
+            }
+
+            // normalize color
             color.x = glm::clamp(color.x, 0.f, 1.f);
             color.y = glm::clamp(color.y, 0.f, 1.f);
             color.z = glm::clamp(color.z, 0.f, 1.f);
@@ -77,11 +127,6 @@ void RaycastCamera(const scene& scene_, const camera& camera_, std::vector<u_cha
             output_data.emplace_back(color.x * 255);
             output_data.emplace_back(color.y * 255);
             output_data.emplace_back(color.z * 255);
-            /*
-            output_data.emplace_back((0.5 + normal.x * 0.5) * 255);
-            output_data.emplace_back((0.5 + normal.y * 0.5) * 255);
-            output_data.emplace_back((0.5 + normal.z * 0.5) * 255);
-            */
         } else {
             output_data.emplace_back(0);
             output_data.emplace_back(0);
@@ -92,26 +137,47 @@ void RaycastCamera(const scene& scene_, const camera& camera_, std::vector<u_cha
 
 int main() {
     // setup scene
-    sphere_renderer sphere {};
+    cg::sphere_renderer sphere {};
     sphere.SetRadius(0.1f);
     sphere.SetTransform({glm::vec3(-0.2f, 0.0f, 0.0f),
                          glm::vec3(0, 0, 0),
                          glm::vec3(1, 1, 1)});
 
-    sphere_renderer sphere2 {};
+    cg::sphere_renderer sphere2 {};
     sphere2.SetRadius(0.1f);
     sphere2.SetTransform({glm::vec3(0.2f, 0.0f, 0.0f),
                          glm::vec3(0, 0, 0),
                          glm::vec3(1, 1, 1)});
 
-    scene scene_{};
-    scene_.AddRenderer(std::make_shared<sphere_renderer>(sphere));
-    scene_.AddRenderer(std::make_shared<sphere_renderer>(sphere2));
+    cg::sphere_renderer sphere3 {};
+    sphere3.SetRadius(0.2f);
+    sphere3.SetTransform({glm::vec3(0.0f, 0.1f, -0.0f),
+                          glm::vec3(0, 0, 0),
+                          glm::vec3(1, 1, 1)});
+
+    cg::point_light point_light {};
+    point_light.SetColor(glm::vec3(1.f, 1.f, 1.f));
+    point_light.SetTransform({glm::vec3(0.0f, 1.0f, -0.5f),
+                              glm::vec3(0, 0, 0),
+                              glm::vec3(1, 1, 1)});
+
+    cg::point_light point_light2 {};
+    point_light2.SetColor(glm::vec3(0.f, 0.f, 1.f));
+    point_light2.SetTransform({glm::vec3(0.0f, -1.0f, -0.5f),
+                              glm::vec3(0, 0, 0),
+                              glm::vec3(1, 1, 1)});
+
+    cg::scene scene_{};
+    scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
+    scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
+    scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
+    scene_.AddLight(std::make_shared<cg::point_light>(point_light));
+    scene_.AddLight(std::make_shared<cg::point_light>(point_light2));
 
     const int32_t width = 512;
     const int32_t height = 512;
 
-    camera camera_{};
+    cg::camera camera_{};
     camera_.SetPosition(glm::vec3(0.f, 0.f, -1.f));
     camera_.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);

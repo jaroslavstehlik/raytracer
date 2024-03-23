@@ -5,10 +5,11 @@
 #ifndef RENDERER_RAYTRACER_H
 #define RENDERER_RAYTRACER_H
 
+namespace cg {
+    class raytracer {
 
-class raytracer {
-
-};
+    };
+}
 
 
 #endif //RENDERER_RAYTRACER_H
