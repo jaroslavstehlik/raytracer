@@ -16,7 +16,14 @@ namespace cg {
         glm::vec3 rotation;
         glm::vec3 scale;
 
+        glm::mat4x4 TranslationMatrix() const;
+        glm::mat4x4 RotationMatrix() const;
+        glm::mat4x4 ScaleMatrix() const;
+        glm::vec3 GetForward() const;
+        glm::vec3 GetRight() const;
+        glm::vec3 GetUp() const;
         glm::mat4x4 ObjectToWorldMatrix() const;
+        glm::mat4x4 WorldToObjectMatrix() const;
     };
 }
 

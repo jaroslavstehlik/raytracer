@@ -57,6 +57,8 @@ add_executable(renderer "src/main.cpp"
         src/lights/light.h
         src/lights/point_light.cpp
         src/lights/point_light.h
+        src/renderers/plane_renderer.cpp
+        src/renderers/plane_renderer.h
 )
 
 target_include_directories(renderer PRIVATE

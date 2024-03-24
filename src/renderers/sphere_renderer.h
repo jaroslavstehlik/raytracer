@@ -14,8 +14,7 @@ namespace cg {
     public:
         void SetRadius(float radius);
 
-        [[nodiscard]] bool
-        Intersects(const ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float& raycast_distance, float max_distance) const override;
+        [[nodiscard]] bool Intersects(const ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float& raycast_distance, float max_distance) const override;
     };
 }
 

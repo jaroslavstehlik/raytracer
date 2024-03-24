@@ -9,6 +9,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "renderers/sphere_renderer.h"
+#include "renderers/plane_renderer.h"
 #include "lights/point_light.h"
 #include "stb_image_write.h"
 
@@ -56,10 +57,8 @@ bool RaycastRenderers(const cg::ray& ray,
         glm::vec3 local_intersection{};
         glm::vec3 local_normal{};
         float local_raycast_distance{};
-        if(renderer->Intersects(ray, local_intersection, local_normal, local_raycast_distance, max_raycast_distance))
-        {
-            if(local_raycast_distance < shortest_intersection)
-            {
+        if(renderer->Intersects(ray, local_intersection, local_normal, local_raycast_distance, max_raycast_distance)) {
+            if(local_raycast_distance < shortest_intersection) {
                 shortest_intersection = local_raycast_distance;
                 raycast_distance = local_raycast_distance;
                 intersection = local_intersection;
@@ -85,8 +84,9 @@ void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vect
         int x = i % width;
         int y = i / width;
 
-        float xf = -1.f + ((float)x / (float)(width - 1)) * 2.f;
-        float yf = -1.f + ((float)y / (float)(height - 1)) * 2.f;
+        // flip x and y
+        float xf = 1.f - ((float)x / (float)(width - 1)) * 2.f;
+        float yf = 1.f - ((float)y / (float)(height - 1)) * 2.f;
 
         glm::vec4 destNear = vpi * glm::vec4 (xf, yf, -1.f, 1.f);
         destNear.x /= destNear.w;
@@ -136,7 +136,13 @@ void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vect
 }
 
 int main() {
+
     // setup scene
+    cg::plane_renderer plane {};
+    plane.SetTransform({glm::vec3(0.0f, -0.05f, 0.0f),
+                       glm::vec3(0, 0, 0.f),
+                       glm::vec3(1, 1, 1)});
+
     cg::sphere_renderer sphere {};
     sphere.SetRadius(0.1f);
     sphere.SetTransform({glm::vec3(-0.2f, 0.0f, 0.0f),
@@ -156,18 +162,19 @@ int main() {
                           glm::vec3(1, 1, 1)});
 
     cg::point_light point_light {};
-    point_light.SetColor(glm::vec3(1.f, 1.f, 1.f));
-    point_light.SetTransform({glm::vec3(0.0f, 1.0f, -0.5f),
+    point_light.SetColor(glm::vec3(1.f, 0.f, 0.f));
+    point_light.SetTransform({glm::vec3(0.5f, 0.3f, -0.5f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::point_light point_light2 {};
     point_light2.SetColor(glm::vec3(0.f, 0.f, 1.f));
-    point_light2.SetTransform({glm::vec3(0.0f, -1.0f, -0.5f),
+    point_light2.SetTransform({glm::vec3(-0.5f, 0.3f, -0.5f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::scene scene_{};
+    scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
@@ -178,8 +185,8 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(0.f, 0.f, -1.f));
-    camera_.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+    camera_.SetPosition(glm::vec3(0.f, 0.5f, -0.7f));
+    camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
     camera_.SetFarClipPlane(10.f);
