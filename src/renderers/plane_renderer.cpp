@@ -3,14 +3,14 @@
 //
 
 #include "plane_renderer.h"
+#include "global_settings.h"
 
 bool cg::plane_renderer::Intersects(const cg::ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float &raycast_distance,
                                float max_distance) const {
 
     normal = transform_.GetUp();
-    float epsilon = 1e-6;
     float dot_product = glm::dot(ray.direction, normal);
-    if(abs(dot_product) < epsilon)
+    if(abs(dot_product) < cg::kEpsilon)
         return false;
 
     glm::vec3 local_position = transform_.position - ray.origin;
@@ -19,7 +19,7 @@ bool cg::plane_renderer::Intersects(const cg::ray &ray, glm::vec3 &intersection,
         return false;
 
     // apply shadow bias to prevent shadow acne
-    raycast_distance -= epsilon;
+    raycast_distance -= cg::kEpsilon;
 
     intersection = ray.origin + ray.direction * raycast_distance;
     return true;

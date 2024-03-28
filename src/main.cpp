@@ -2,8 +2,11 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
+#define _CRT_SECURE_NO_WARNINGS
 #define GLM_ENABLE_EXPERIMENTAL
+#define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define TINYGLTF_IMPLEMENTATION
 
 #include <iostream>
 #include "scene.h"
@@ -11,7 +14,17 @@
 #include "renderers/sphere_renderer.h"
 #include "renderers/plane_renderer.h"
 #include "lights/point_light.h"
+
+// begin tiny GLTF
+#include "stb_image.h"
 #include "stb_image_write.h"
+#include "json.hpp"
+
+#define TINYGLTF_NO_INCLUDE_JSON
+#define TINYGLTF_NO_INCLUDE_STB_IMAGE
+#define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
+#include "tiny_gltf.h"
+// end tinyGLTF
 
 void CoutVector3(const char* name, const glm::vec3& pos)
 {
@@ -136,6 +149,24 @@ void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vect
 }
 
 int main() {
+    std::string input_filename = "box.glb";
+    std::string err;
+    std::string warn;
+
+    tinygltf::Model model;
+    tinygltf::TinyGLTF loader;
+
+    bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, input_filename);
+    if (!warn.empty()) {
+        printf("Warn: %s\n", warn.c_str());
+    }
+    if (!err.empty()) {
+        printf("ERR: %s\n", err.c_str());
+    }
+    if (!ret) {
+        printf("Failed to load .glTF : %s\n", input_filename.c_str());
+        exit(-1);
+    }
 
     // setup scene
     cg::plane_renderer plane {};

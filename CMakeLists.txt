@@ -29,10 +29,35 @@ include(FetchContent)
 FetchContent_Declare(
         stb
         GIT_REPOSITORY https://github.com/nothings/stb.git
-#        GIT_TAG ae721c50eaf761660b4f90cc590453cdb0c2acd0
 )
 FetchContent_GetProperties(stb)
 FetchContent_MakeAvailable(stb)
+
+#Nlohman json
+include(FetchContent)
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG		   v3.11.3
+)
+FetchContent_GetProperties(json)
+FetchContent_MakeAvailable(json)
+
+#TinyGLTF
+include(FetchContent)
+FetchContent_Declare(
+        tinygltf
+        GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+        GIT_TAG		   v2.8.21
+)
+
+FetchContent_GetProperties(tinygltf)
+
+set(TINYGLTF_HEADER_ONLY ON CACHE INTERNAL "" FORCE)
+set(TINYGLTF_INSTALL OFF CACHE INTERNAL "" FORCE)
+
+FetchContent_MakeAvailable(tinygltf)
+#add_subdirectory(${tinygltf_SOURCE_DIR})
 
 include_directories(renderer PRIVATE src/include)
 
@@ -59,8 +84,11 @@ add_executable(renderer "src/main.cpp"
         src/lights/point_light.h
         src/renderers/plane_renderer.cpp
         src/renderers/plane_renderer.h
+        src/include/global_settings.h
 )
 
 target_include_directories(renderer PRIVATE
         ${glm_SOURCE_DIR}
         ${stb_SOURCE_DIR})
+
+target_link_libraries(renderer PRIVATE tinygltf)

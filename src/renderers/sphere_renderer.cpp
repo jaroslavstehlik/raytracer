@@ -34,6 +34,5 @@ bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, gl
         return false;
 
     normal = glm::normalize(intersection - transform_.position);
-
     return true;
 }
