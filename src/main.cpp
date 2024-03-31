@@ -148,15 +148,15 @@ void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vect
     }
 }
 
-int main() {
-    std::string input_filename = "box.glb";
+bool LoadModel(const std::string& path)
+{
     std::string err;
     std::string warn;
 
     tinygltf::Model model;
     tinygltf::TinyGLTF loader;
 
-    bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, input_filename);
+    bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, path);
     if (!warn.empty()) {
         printf("Warn: %s\n", warn.c_str());
     }
@@ -164,8 +164,70 @@ int main() {
         printf("ERR: %s\n", err.c_str());
     }
     if (!ret) {
-        printf("Failed to load .glTF : %s\n", input_filename.c_str());
-        exit(-1);
+        printf("Failed to load .glTF : %s\n", path.c_str());
+        return false;
+    }
+
+    for(tinygltf::Mesh& mesh : model.meshes) {
+        std::cout << "mesh: " << mesh.name << std::endl;
+        std::cout << "primitives: " << std::to_string(mesh.primitives.size()) << std::endl;
+        for(tinygltf::Primitive& primitive : mesh.primitives)
+        {
+            std::cout << "indicies: " << std::to_string(primitive.indices) << std::endl;
+            if(primitive.indices != -1) {
+                const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+                if(indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                    const tinygltf::BufferView &indexBufferView = model.bufferViews[indexAccessor.bufferView];
+                    const tinygltf::Buffer &indexBuffer = model.buffers[indexBufferView.buffer];
+                    const u_short *index_start = reinterpret_cast<const u_short *>(&indexBuffer.data[
+                            indexBufferView.byteOffset + indexAccessor.byteOffset]);
+
+                    std::vector<u_short> indexes(index_start, index_start + indexAccessor.count);
+                    std::cout << indexes.size() << std::endl;
+                    for (u_short index: indexes) {
+                        std::cout << index << std::endl;
+                    }
+                }
+            }
+
+            std::cout << "primitive attributes: " << std::to_string(primitive.attributes.size()) <<  std::endl;
+            for(const auto& [key, value] : primitive.attributes)
+            {
+                std::cout << "key: " << key << ", value: " << value <<  std::endl;
+                if(key.compare("POSITION") == 0)
+                {
+                    const tinygltf::Accessor &accessor = model.accessors[value];
+                    if(accessor.type == TINYGLTF_TYPE_VEC3 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
+                    {
+                        std::cout << accessor.componentType << std::endl;
+                        const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                        const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+
+                        const glm::vec3* position_start = reinterpret_cast<const glm::vec3*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+                        std::vector<glm::vec3> positions(position_start, position_start + accessor.count);
+                        std::cout << positions.size() << std::endl;
+                        for(const glm::vec3& position : positions)
+                        {
+                            CoutVector3("position: ", position);
+                        }
+                    }
+                } else if(key.compare("NORMAL") == 0)
+                {
+                    const tinygltf::Accessor &accessor = model.accessors[value];
+                    if(accessor.type == TINYGLTF_TYPE_VEC3)
+                    {
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    if(LoadModel("box.glb"))
+    {
+
     }
 
     // setup scene
