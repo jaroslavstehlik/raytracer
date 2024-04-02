@@ -2,8 +2,8 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#ifndef RENDERER_TRANSFORM_H
-#define RENDERER_TRANSFORM_H
+#pragma once
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
@@ -26,5 +26,3 @@ namespace cg {
         glm::mat4x4 WorldToObjectMatrix() const;
     };
 }
-
-#endif //RENDERER_TRANSFORM_H

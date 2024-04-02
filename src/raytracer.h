@@ -2,14 +2,33 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#ifndef RENDERER_RAYTRACER_H
-#define RENDERER_RAYTRACER_H
+#pragma once
+#include <locale>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/vec3.hpp"
+#include "glm/mat4x4.hpp"
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "scene.h"
+#include "camera.h"
 namespace cg {
     class raytracer {
+    private:
+        bool IntersectRenderers(const cg::ray& ray,
+                                const cg::scene& scene,
+                                float max_raycast_distance);
 
+        bool RaycastRenderers(const cg::ray& ray,
+                              const cg::scene& scene,
+                              glm::vec3& intersection,
+                              glm::vec3& normal,
+                              float& raycast_distance,
+                              float max_raycast_distance);
+
+    public:
+        void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vector<u_char>& output_data,
+                           int width, int height, float max_raycast_distance = 10.f);
     };
 }
-
-
-#endif //RENDERER_RAYTRACER_H

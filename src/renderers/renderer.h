@@ -2,8 +2,7 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#ifndef RENDERER_RENDERER_H
-#define RENDERER_RENDERER_H
+#pragma once
 #include "ray.h"
 #include "transform.h"
 
@@ -20,5 +19,3 @@ namespace cg {
         Intersects(const ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float& raycast_distance, float max_distance) const;
     };
 }
-
-#endif //RENDERER_RENDERER_H

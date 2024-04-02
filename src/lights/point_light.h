@@ -2,8 +2,7 @@
 // Created by Jaroslav Stehlik on 23.03.2024.
 //
 
-#ifndef RENDERER_POINT_LIGHT_H
-#define RENDERER_POINT_LIGHT_H
+#pragma once
 #include "light.h"
 
 namespace cg {
@@ -16,6 +15,3 @@ namespace cg {
         [[nodiscard]] glm::vec3 GetColor(const ray &ray_, const glm::vec3& normal) const override;
     };
 }
-
-
-#endif //RENDERER_POINT_LIGHT_H

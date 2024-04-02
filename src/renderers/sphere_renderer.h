@@ -2,8 +2,7 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#ifndef RENDERER_SPHERE_RENDERER_H
-#define RENDERER_SPHERE_RENDERER_H
+#pragma once
 #include "renderer.h"
 
 namespace cg {
@@ -17,5 +16,3 @@ namespace cg {
         [[nodiscard]] bool Intersects(const ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float& raycast_distance, float max_distance) const override;
     };
 }
-
-#endif //RENDERER_SPHERE_RENDERER_H

@@ -2,8 +2,7 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#ifndef RENDERER_CAMERA_H
-#define RENDERER_CAMERA_H
+#pragma once
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
 
@@ -43,5 +42,3 @@ namespace cg {
         [[nodiscard]] glm::mat4x4 GetProjectionMatrix() const;
     };
 }
-
-#endif //RENDERER_CAMERA_H

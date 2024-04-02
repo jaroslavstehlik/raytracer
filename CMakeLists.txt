@@ -85,6 +85,9 @@ add_executable(renderer "src/main.cpp"
         src/renderers/plane_renderer.cpp
         src/renderers/plane_renderer.h
         src/include/global_settings.h
+        src/loaders/gltf_loader.cpp
+        src/loaders/gltf_loader.h
+        src/main.h
 )
 
 target_include_directories(renderer PRIVATE
