@@ -88,6 +88,9 @@ add_executable(renderer "src/main.cpp"
         src/loaders/gltf_loader.cpp
         src/loaders/gltf_loader.h
         src/main.h
+        src/include/mesh.h
+        src/resources.cpp
+        src/resources.h
 )
 
 target_include_directories(renderer PRIVATE

@@ -2,7 +2,10 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
-#include "main.h"
+
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -11,11 +14,21 @@
 #include "stb_image_write.h"
 #include "json.hpp"
 
+#include "scene.h"
+#include "camera.h"
+#include "renderers/sphere_renderer.h"
+#include "renderers/plane_renderer.h"
+#include "lights/point_light.h"
+#include "loaders/gltf_loader.h"
 #include "raytracer.h"
+#include "resources.h"
 
 int main() {
+    cg::resources resources{};
+
     cg::gltf_loader gltf_loader{};
     gltf_loader.LoadModel("box.glb");
+    resources.AddMesh("box.glb", std::make_shared<cg::mesh>());
 
     // setup scene
     cg::plane_renderer plane {};
