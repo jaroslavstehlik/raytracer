@@ -12,10 +12,12 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "mesh.h"
+
 namespace cg {
     class gltf_loader {
     public:
-        bool LoadModel(const std::string& path) const;
+        bool LoadModel(const std::string& path, cg::mesh& mesh) const;
     };
 
 } // cg

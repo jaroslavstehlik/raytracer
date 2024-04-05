@@ -18,17 +18,27 @@
 #include "camera.h"
 #include "renderers/sphere_renderer.h"
 #include "renderers/plane_renderer.h"
+#include "renderers/mesh_renderer.h"
 #include "lights/point_light.h"
 #include "loaders/gltf_loader.h"
 #include "raytracer.h"
 #include "resources.h"
 
 int main() {
+    // prepare resources
     cg::resources resources{};
 
     cg::gltf_loader gltf_loader{};
-    gltf_loader.LoadModel("box.glb");
-    resources.AddMesh("box.glb", std::make_shared<cg::mesh>());
+
+    std::shared_ptr<cg::mesh> box_mesh = std::make_shared<cg::mesh>();
+    if(gltf_loader.LoadModel("box.glb", *box_mesh)) {
+        resources.AddMesh("box.glb", box_mesh);
+    }
+
+    std::shared_ptr<cg::mesh> monkey_mesh = std::make_shared<cg::mesh>();
+    if(gltf_loader.LoadModel("monkey.glb", *box_mesh)) {
+        resources.AddMesh("monkey.glb", box_mesh);
+    }
 
     // setup scene
     cg::plane_renderer plane {};
@@ -66,11 +76,29 @@ int main() {
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
+    cg::mesh_renderer box_renderer {};
+    box_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
+                               glm::vec3(0, 45.f, 0),
+                               glm::vec3(0.1f, 0.1f, 0.1f)});
+    box_renderer.SetMesh(resources.GetMesh("box.glb"));
+
+    cg::mesh_renderer monkey_renderer {};
+    monkey_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
+                               glm::vec3(0, 45.f, 0),
+                               glm::vec3(0.1f, 0.1f, 0.1f)});
+    monkey_renderer.SetMesh(resources.GetMesh("monkey.glb"));
+
     cg::scene scene_{};
     scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
+    /*
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
+    scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
+     */
+
+    scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(monkey_renderer));
+
     scene_.AddLight(std::make_shared<cg::point_light>(point_light));
     scene_.AddLight(std::make_shared<cg::point_light>(point_light2));
 

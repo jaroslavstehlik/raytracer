@@ -19,7 +19,7 @@ namespace cg {
         std::cout << name << "x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << std::endl;
     }
 
-    bool gltf_loader::LoadModel(const std::string& path) const
+    bool gltf_loader::LoadModel(const std::string& path, cg::mesh& out_mesh) const
     {
         std::string err;
         std::string warn;
@@ -50,14 +50,10 @@ namespace cg {
                     if(indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                         const tinygltf::BufferView &indexBufferView = model.bufferViews[indexAccessor.bufferView];
                         const tinygltf::Buffer &indexBuffer = model.buffers[indexBufferView.buffer];
-                        const u_short *index_start = reinterpret_cast<const u_short *>(&indexBuffer.data[
+                        const uint16_t *index_start = reinterpret_cast<const uint16_t*>(&indexBuffer.data[
                                 indexBufferView.byteOffset + indexAccessor.byteOffset]);
 
-                        std::vector<u_short> indexes(index_start, index_start + indexAccessor.count);
-                        std::cout << indexes.size() << std::endl;
-                        for (u_short index: indexes) {
-                            std::cout << index << std::endl;
-                        }
+                        out_mesh.SetIndexes(index_start, indexAccessor.count);
                     }
                 }
 
@@ -70,24 +66,22 @@ namespace cg {
                         const tinygltf::Accessor &accessor = model.accessors[value];
                         if(accessor.type == TINYGLTF_TYPE_VEC3 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                         {
-                            std::cout << accessor.componentType << std::endl;
                             const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
                             const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
                             const glm::vec3* position_start = reinterpret_cast<const glm::vec3*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                            std::vector<glm::vec3> positions(position_start, position_start + accessor.count);
-                            std::cout << positions.size() << std::endl;
-                            for(const glm::vec3& position : positions)
-                            {
-                                CoutVector3("position: ", position);
-                            }
+                            out_mesh.SetPositions(position_start, accessor.count);
                         }
-                    } else if(key.compare("NORMAL") == 0)
+                    } else if(key.compare("TEXCOORD0") == 0)
                     {
                         const tinygltf::Accessor &accessor = model.accessors[value];
-                        if(accessor.type == TINYGLTF_TYPE_VEC3)
+                        if(accessor.type == TINYGLTF_TYPE_VEC2 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                         {
+                            const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
+                            const glm::vec2* texcoord0_start = reinterpret_cast<const glm::vec2*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
+                            out_mesh.SetTexcoord0(texcoord0_start, accessor.count);
                         }
                     }
                 }

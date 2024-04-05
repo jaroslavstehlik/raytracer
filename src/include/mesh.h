@@ -12,7 +12,7 @@ namespace cg {
     class mesh {
     private:
         std::vector<glm::vec3> positions_;
-        std::vector<int16_t> indexes_;
+        std::vector<uint16_t> indexes_;
         std::vector<glm::vec2> texcoord0_;
     public:
         std::span<const glm::vec3> GetPositions() const {
@@ -21,10 +21,10 @@ namespace cg {
         void SetPositions(const glm::vec3* begin, size_t length) {
             positions_ = {begin, begin + length};
         }
-        std::span<const int16_t> GetIndexes() const {
+        std::span<const uint16_t> GetIndexes() const {
             return {indexes_};
         }
-        void SetIndexes(const int16_t* begin, size_t length) {
+        void SetIndexes(const uint16_t* begin, size_t length) {
             indexes_ = {begin, begin + length};
         }
         std::span<const glm::vec2> GetTexcoord0() const {
@@ -33,5 +33,7 @@ namespace cg {
         void SetTexcoord0(const glm::vec2* begin, size_t length) {
             texcoord0_ = {begin, begin + length};
         }
+
+        // todo: add mesh validation
     };
 }

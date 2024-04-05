@@ -4,5 +4,5 @@
 
 #pragma once
 namespace cg {
-    float kEpsilon = 1e-6;
+    constexpr float kEpsilon = 1e-6;
 }
