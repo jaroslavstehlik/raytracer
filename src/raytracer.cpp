@@ -28,6 +28,12 @@ namespace cg {
                                      float max_raycast_distance) {
         float shortest_intersection = std::numeric_limits<float>::max();
 
+        // prepass renderers
+        for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
+            renderer->RecalculateBounds();
+        }
+
+        // raycast renderers
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
             glm::vec3 local_intersection{};
             glm::vec3 local_normal{};

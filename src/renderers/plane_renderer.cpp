@@ -24,3 +24,8 @@ bool cg::plane_renderer::Intersects(const cg::ray &ray, glm::vec3 &intersection,
     intersection = ray.origin + ray.direction * raycast_distance;
     return true;
 }
+
+void cg::plane_renderer::RecalculateBounds() {
+    bounds_.min = glm::vec3(std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min());
+    bounds_.max = glm::vec3(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+}

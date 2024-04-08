@@ -5,6 +5,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <chrono>
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
 #define STB_IMAGE_IMPLEMENTATION
@@ -84,7 +85,7 @@ int main() {
 
     cg::mesh_renderer monkey_renderer {};
     monkey_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
-                               glm::vec3(0, 45.f, 0),
+                               glm::vec3(0, -45.f, 0),
                                glm::vec3(0.1f, 0.1f, 0.1f)});
     monkey_renderer.SetMesh(resources.GetMesh("monkey.glb"));
 
@@ -117,7 +118,12 @@ int main() {
     std::vector<u_char> output_data{};
 
     cg::raytracer raytracer{};
+
+    auto start = std::chrono::high_resolution_clock::now();
     raytracer.RaycastCamera(scene_, camera_, output_data, width, height);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = duration_cast<std::chrono::seconds>(stop - start);
+    std::cout << "rendering took: " << duration.count() << "s" << std::endl;
 
     // save image to drive
     const int32_t channel_count = 3;

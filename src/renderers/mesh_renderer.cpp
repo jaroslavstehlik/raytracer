@@ -13,6 +13,9 @@ bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm:
     if(!mesh_)
         return false;
 
+    if(!bounds_.Intersects(ray))
+        return false;
+
     // TODO: check if mesh is valid
     const std::span<const uint16_t> indexes = mesh_->GetIndexes();
     const std::span<const glm::vec3> positions = mesh_->GetPositions();
@@ -88,4 +91,38 @@ bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm:
     raycast_distance -= cg::kEpsilon;
     intersection = ray.origin + ray.direction * raycast_distance;
     return true;
+}
+
+void cg::mesh_renderer::RecalculateBounds() {
+
+    const std::span<const uint16_t> indexes = mesh_->GetIndexes();
+    if(indexes.size() == 0)
+    {
+        bounds_.Reset();
+        return;
+    }
+
+    const std::span<const glm::vec3> positions = mesh_->GetPositions();
+
+    const glm::mat4x4 objectToWorldMatrix = transform_.ObjectToWorldMatrix();
+
+    bounds_.min = glm::vec3(std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+    bounds_.max = glm::vec3(std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min());
+
+    // step each triangle
+    for(int i = 0; i < indexes.size(); i += 3) {
+        // obtain model space triangle
+        glm::vec3 v0 = positions[indexes[i + 0]];
+        glm::vec3 v1 = positions[indexes[i + 1]];
+        glm::vec3 v2 = positions[indexes[i + 2]];
+
+        // convert triangle to world space
+        v0 = objectToWorldMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.f);
+        v1 = objectToWorldMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.f);
+        v2 = objectToWorldMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.f);
+
+        bounds_.Expand(v0);
+        bounds_.Expand(v1);
+        bounds_.Expand(v2);
+    }
 }

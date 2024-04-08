@@ -91,6 +91,7 @@ add_executable(renderer "src/main.cpp"
         src/include/mesh.h
         src/resources.cpp
         src/resources.h
+        src/include/AABB.h
 )
 
 target_include_directories(renderer PRIVATE

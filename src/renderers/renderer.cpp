@@ -14,3 +14,5 @@ const cg::transform &cg::renderer::GetTransform() const {
 bool cg::renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
     return false;
 }
+
+void cg::renderer::RecalculateBounds() {}
