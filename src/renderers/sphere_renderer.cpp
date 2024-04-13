@@ -12,7 +12,7 @@ void cg::sphere_renderer::SetRadius(float radius) {
 bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
     // Analytical
 
-    if(!bounds_.Intersects(ray))
+    if(!bounds_.Intersects(ray, max_distance))
         return false;
 
     float raySphereDotProduct = glm::dot(ray.direction, transform_.position - ray.origin);

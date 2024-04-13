@@ -28,11 +28,6 @@ namespace cg {
                                      float max_raycast_distance) {
         float shortest_intersection = std::numeric_limits<float>::max();
 
-        // prepass renderers
-        for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
-            renderer->RecalculateBounds();
-        }
-
         // raycast renderers
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
             glm::vec3 local_intersection{};
@@ -52,8 +47,13 @@ namespace cg {
         return shortest_intersection != std::numeric_limits<float>::max();
     }
 
-    void raytracer::RaycastCamera(const cg::scene &scene_, const cg::camera &camera_, std::vector <u_char> &output_data,
+    void raytracer::RaycastCamera(const cg::scene &scene, const cg::camera &camera_, std::vector <u_char> &output_data,
                        int width, int height, float max_raycast_distance) {
+
+        // prepass renderers
+        for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
+            renderer->RecalculateBounds();
+        }
 
         const int total_pixels = width * height;
 
@@ -88,15 +88,15 @@ namespace cg {
             glm::vec3 normal{};
             float raycast_distance{};
 
-            if (RaycastRenderers(ray_, scene_, intersection, normal, raycast_distance, max_raycast_distance)) {
+            if (RaycastRenderers(ray_, scene, intersection, normal, raycast_distance, max_raycast_distance)) {
                 glm::vec3 color{};
 
-                for (const std::shared_ptr <cg::light> &light: scene_.GetLights()) {
+                for (const std::shared_ptr <cg::light> &light: scene.GetLights()) {
                     glm::vec3 light_direction = glm::normalize(light->GetTransform().position - intersection);
                     float light_distance = glm::distance(light->GetTransform().position, intersection);
 
                     cg::ray light_ray{intersection, light_direction};
-                    if (!IntersectRenderers(light_ray, scene_, light_distance)) {
+                    if (!IntersectRenderers(light_ray, scene, light_distance)) {
                         color += light->GetColor(light_ray, normal);
                     }
                 }

@@ -37,8 +37,8 @@ int main() {
     }
 
     std::shared_ptr<cg::mesh> monkey_mesh = std::make_shared<cg::mesh>();
-    if(gltf_loader.LoadModel("monkey.glb", *box_mesh)) {
-        resources.AddMesh("monkey.glb", box_mesh);
+    if(gltf_loader.LoadModel("monkey.glb", *monkey_mesh)) {
+        resources.AddMesh("monkey.glb", monkey_mesh);
     }
 
     // setup scene
@@ -67,13 +67,13 @@ int main() {
 
     cg::point_light point_light {};
     point_light.SetColor(glm::vec3(1.f, 0.f, 0.f));
-    point_light.SetTransform({glm::vec3(0.5f, 0.3f, -0.5f),
+    point_light.SetTransform({glm::vec3(0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::point_light point_light2 {};
     point_light2.SetColor(glm::vec3(0.f, 0.f, 1.f));
-    point_light2.SetTransform({glm::vec3(-0.5f, 0.3f, -0.5f),
+    point_light2.SetTransform({glm::vec3(-0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
@@ -85,7 +85,7 @@ int main() {
 
     cg::mesh_renderer monkey_renderer {};
     monkey_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
-                               glm::vec3(0, -45.f, 0),
+                               glm::vec3(0, 180.f, 0),
                                glm::vec3(0.1f, 0.1f, 0.1f)});
     monkey_renderer.SetMesh(resources.GetMesh("monkey.glb"));
 
@@ -95,9 +95,10 @@ int main() {
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
-    scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
+
      */
 
+    //scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
     scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(monkey_renderer));
 
     scene_.AddLight(std::make_shared<cg::point_light>(point_light));
@@ -107,7 +108,7 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(0.f, 0.5f, -0.7f));
+    camera_.SetPosition(glm::vec3(0.f, 0.1f, -0.25f));
     camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);

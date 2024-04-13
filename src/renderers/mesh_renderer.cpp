@@ -4,6 +4,8 @@
 
 #include "mesh_renderer.h"
 #include "global_settings.h"
+#include <iostream>
+#include <fstream>
 
 void cg::mesh_renderer::SetMesh(const std::shared_ptr<cg::mesh> &mesh) {
     mesh_ = mesh;
@@ -13,83 +15,21 @@ bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm:
     if(!mesh_)
         return false;
 
-    if(!bounds_.Intersects(ray))
+    if(!bounds_.Intersects(ray, max_distance))
         return false;
 
-    // TODO: check if mesh is valid
-    const std::span<const uint16_t> indexes = mesh_->GetIndexes();
-    const std::span<const glm::vec3> positions = mesh_->GetPositions();
-
-    const glm::mat4x4 objectToWorldMatrix = transform_.ObjectToWorldMatrix();
     float nearest_raycast_distance = std::numeric_limits<float>::max();
-
-    // step each triangle
-    for(int i = 0; i < indexes.size(); i += 3)
-    {
-        // obtain model space triangle
-        glm::vec3 v0 = positions[indexes[i + 0]];
-        glm::vec3 v1 = positions[indexes[i + 1]];
-        glm::vec3 v2 = positions[indexes[i + 2]];
-
-        // convert triangle to world space
-        v0 = objectToWorldMatrix * glm::vec4(v0.x, v0.y, v0.z, 1.f);
-        v1 = objectToWorldMatrix * glm::vec4(v1.x, v1.y, v1.z, 1.f);
-        v2 = objectToWorldMatrix * glm::vec4(v2.x, v2.y, v2.z, 1.f);
-
-        // intersect plane of the triangle
-        const glm::vec3 local_normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        const float dot_product = glm::dot(ray.direction, local_normal);
-        if(abs(dot_product) < cg::kEpsilon)
-            continue;
-
-        const glm::vec3 local_position = v0 - ray.origin;
-        const float local_raycast_distance = glm::dot(local_position, local_normal) / dot_product;
-        if(local_raycast_distance < 0.f)
-            continue;
-
-        const glm::vec3 local_intersection = ray.origin + ray.direction * local_raycast_distance;
-
-        // Inside-Outside Test
-        // Step 2: Inside-Outside Test
-        glm::vec3 C; // Vector perpendicular to triangle's plane
-
-        // Edge 0
-        glm::vec3 edge0 = v1 - v0;
-        glm::vec3 vp0 = local_intersection - v0;
-        C = glm::cross(edge0, vp0);
-        if (glm::dot(local_normal, C) < 0)
-            continue; // P is on the right side
-
-        // Edge 1
-        glm::vec3 edge1 = v2 - v1;
-        glm::vec3 vp1 = local_intersection - v1;
-        C = glm::cross(edge1, vp1);
-        if (glm::dot(local_normal, C) < 0)
-            continue;  // P is on the right side
-
-        // Edge 2
-        glm::vec3 edge2 = v0 - v2;
-        glm::vec3 vp2 = local_intersection - v2;
-        C = glm::cross(edge2, vp2);
-        if (glm::dot(local_normal, C) < 0)
-            continue; // P is on the right side
-
-        // This ray hits the triangle
-        if(local_raycast_distance < nearest_raycast_distance)
-        {
-            nearest_raycast_distance = local_raycast_distance;
-            raycast_distance = nearest_raycast_distance;
-            intersection = local_intersection;
-            normal = local_normal;
-        }
-    }
+    if(!bvh.Intersect(ray, normal, nearest_raycast_distance))
+        return false;
 
     if(nearest_raycast_distance == std::numeric_limits<float>::max())
         return false;
 
+    raycast_distance = nearest_raycast_distance;
     // apply shadow bias to prevent shadow acne
     raycast_distance -= cg::kEpsilon;
     intersection = ray.origin + ray.direction * raycast_distance;
+    //normal = glm::normalize(glm::cross(fv1 - fv0, fv2 - fv0));
     return true;
 }
 
@@ -103,6 +43,7 @@ void cg::mesh_renderer::RecalculateBounds() {
     }
 
     const std::span<const glm::vec3> positions = mesh_->GetPositions();
+    world_space_positions_.resize(positions.size());
 
     const glm::mat4x4 objectToWorldMatrix = transform_.ObjectToWorldMatrix();
 
@@ -124,5 +65,17 @@ void cg::mesh_renderer::RecalculateBounds() {
         bounds_.Expand(v0);
         bounds_.Expand(v1);
         bounds_.Expand(v2);
+
+        world_space_positions_[indexes[i + 0]] = v0;
+        world_space_positions_[indexes[i + 1]] = v1;
+        world_space_positions_[indexes[i + 2]] = v2;
     }
+
+    bvh.Build(world_space_positions_, indexes);
+
+    std::ofstream myfile;
+    myfile.open ("debug_bounds.txt");
+    myfile << bvh.Debug();
+    myfile.close();
+    std::cout << "wrote debug" << std::endl;
 }

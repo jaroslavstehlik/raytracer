@@ -13,34 +13,14 @@ namespace cg {
         glm::vec3 min;
         glm::vec3 max;
 
-        bool Intersects(const cg::ray& ray) const {
-            // https://tavianator.com/2011/ray_box.html
-
-            float tmin = std::numeric_limits<float>::min();
-            float tmax = std::numeric_limits<float>::max();
-
-            if (ray.direction.x != 0.f) {
-                float t1 = (min.x - ray.origin.x) / ray.direction.x;
-                float t2 = (max.x - ray.origin.x) / ray.direction.x;
-                tmin = std::max(tmin, std::min(t1, t2));
-                tmax = std::min(tmax, std::max(t1, t2));
-            }
-
-            if (ray.direction.y != 0.f) {
-                float t1 = (min.y - ray.origin.y) / ray.direction.y;
-                float t2 = (max.y - ray.origin.y) / ray.direction.y;
-                tmin = std::max(tmin, std::min(t1, t2));
-                tmax = std::min(tmax, std::max(t1, t2));
-            }
-
-            if (ray.direction.z != 0.f) {
-                float t1 = (min.z - ray.origin.z) / ray.direction.z;
-                float t2 = (max.z - ray.origin.z) / ray.direction.z;
-                tmin = std::max(tmin, std::min(t1, t2));
-                tmax = std::min(tmax, std::max(t1, t2));
-            }
-
-            return tmin < tmax;
+        bool Intersects(const cg::ray &ray, float raycast_distance) const {
+            float tx1 = (min.x - ray.origin.x) / ray.direction.x, tx2 = (max.x - ray.origin.x) / ray.direction.x;
+            float tmin = std::min(tx1, tx2), tmax = std::max(tx1, tx2);
+            float ty1 = (min.y - ray.origin.y) / ray.direction.y, ty2 = (max.y - ray.origin.y) / ray.direction.y;
+            tmin = std::max(tmin, std::min(ty1, ty2)), tmax = std::min(tmax, std::max(ty1, ty2));
+            float tz1 = (min.z - ray.origin.z) / ray.direction.z, tz2 = (max.z - ray.origin.z) / ray.direction.z;
+            tmin = std::max(tmin, std::min(tz1, tz2)), tmax = std::min(tmax, std::max(tz1, tz2));
+            return tmax >= tmin && tmin < raycast_distance && tmax > 0;
         }
 
         void Reset() {
@@ -49,25 +29,15 @@ namespace cg {
         }
 
         void Expand(const glm::vec3& position) {
-            min.x = std::min(position.x, min.x);
-            min.y = std::min(position.y, min.y);
-            min.z = std::min(position.z, min.z);
-
-            max.x = std::max(position.x, max.x);
-            max.y = std::max(position.y, max.y);
-            max.z = std::max(position.z, max.z);
+            min = glm::min(min, position);
+            max = glm::max(max, position);
         }
 
         void Expand(const std::span<const glm::vec3>& positions) {
             for(const glm::vec3& position : positions)
             {
-                min.x = std::min(position.x, min.x);
-                min.y = std::min(position.y, min.y);
-                min.z = std::min(position.z, min.z);
-
-                max.x = std::max(position.x, max.x);
-                max.y = std::max(position.y, max.y);
-                max.z = std::max(position.z, max.z);
+                min = glm::min(min, position);
+                max = glm::max(max, position);
             }
         }
 
@@ -75,6 +45,11 @@ namespace cg {
             min.x = min.y = min.z = std::numeric_limits<float>::max();
             max.x = max.y = max.z = std::numeric_limits<float>::min();
             Expand(positions);
+        }
+
+        glm::vec3 Extent()
+        {
+            return max - min;
         }
     };
 }
