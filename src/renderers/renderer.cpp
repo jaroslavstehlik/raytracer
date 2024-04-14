@@ -3,12 +3,20 @@
 //
 #include "renderer.h"
 
-void cg::renderer::SetTransform(const transform &transform) {
+void cg::renderer::SetTransform(const cg::transform &transform) {
     transform_ = transform;
 }
 
 const cg::transform &cg::renderer::GetTransform() const {
     return transform_;
+}
+
+void cg::renderer::SetMaterial(const std::shared_ptr<cg::material>& material) {
+    material_ = material;
+}
+
+const std::shared_ptr<cg::material>& cg::renderer::GetMaterial() const {
+    return material_;
 }
 
 bool cg::renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {

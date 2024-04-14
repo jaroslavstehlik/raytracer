@@ -24,8 +24,12 @@ namespace cg {
                               const cg::scene& scene,
                               glm::vec3& intersection,
                               glm::vec3& normal,
-                              float& raycast_distance,
-                              float max_raycast_distance);
+                              float max_raycast_distance,
+                              std::shared_ptr<cg::material>& material);
+
+        void Raycast(const cg::ray& ray, const cg::scene& scene, glm::vec3& accumulated_color,
+                     glm::vec3& intersection, glm::vec3& normal, int bounce_index,
+                     int max_bounces, float max_raycast_distance);
 
     public:
         void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vector<u_char>& output_data,

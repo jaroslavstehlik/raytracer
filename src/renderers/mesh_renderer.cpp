@@ -73,9 +73,11 @@ void cg::mesh_renderer::RecalculateBounds() {
 
     bvh.Build(world_space_positions_, indexes);
 
+    /*
     std::ofstream myfile;
     myfile.open ("debug_bounds.txt");
     myfile << bvh.Debug();
     myfile.close();
     std::cout << "wrote debug" << std::endl;
+     */
 }

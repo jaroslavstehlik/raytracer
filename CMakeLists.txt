@@ -94,6 +94,8 @@ add_executable(renderer "src/main.cpp"
         src/include/AABB.h
         src/include/structures/bvh.cpp
         src/include/structures/bvh.h
+        src/materials/material.cpp
+        src/materials/material.h
 )
 
 target_include_directories(renderer PRIVATE

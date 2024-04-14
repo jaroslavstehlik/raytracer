@@ -20,6 +20,7 @@
 #include "renderers/sphere_renderer.h"
 #include "renderers/plane_renderer.h"
 #include "renderers/mesh_renderer.h"
+#include "materials/material.h"
 #include "lights/point_light.h"
 #include "loaders/gltf_loader.h"
 #include "raytracer.h"
@@ -28,7 +29,6 @@
 int main() {
     // prepare resources
     cg::resources resources{};
-
     cg::gltf_loader gltf_loader{};
 
     std::shared_ptr<cg::mesh> box_mesh = std::make_shared<cg::mesh>();
@@ -41,64 +41,75 @@ int main() {
         resources.AddMesh("monkey.glb", monkey_mesh);
     }
 
+    cg::material white_material{glm::vec4(1.f, 1.f, 1.f, 1.f), 1.f, 0.f};
+    cg::material blue_material{glm::vec4(0.f, 0.f, 1.f, 1.f), 1.f, 0.f};
+    cg::material red_material{glm::vec4(1.f, 0.f, 0.f, 1.f), 1.f, 0.f};
+    cg::material metal_material{glm::vec4(0.1f, 0.1f, 0.1f, 1.f), 0.f, 1.f};
+    resources.AddMaterial("white", std::make_shared<cg::material>(white_material));
+    resources.AddMaterial("blue", std::make_shared<cg::material>(blue_material));
+    resources.AddMaterial("red", std::make_shared<cg::material>(red_material));
+    resources.AddMaterial("metal", std::make_shared<cg::material>(metal_material));
+
     // setup scene
     cg::plane_renderer plane {};
     plane.SetTransform({glm::vec3(0.0f, -0.05f, 0.0f),
                        glm::vec3(0, 0, 0.f),
                        glm::vec3(1, 1, 1)});
+    plane.SetMaterial(resources.GetMaterial("white"));
 
     cg::sphere_renderer sphere {};
     sphere.SetRadius(0.1f);
-    sphere.SetTransform({glm::vec3(-0.2f, 0.0f, 0.0f),
+    sphere.SetTransform({glm::vec3(-0.3f, 0.05f, 0.0f),
                          glm::vec3(0, 0, 0),
                          glm::vec3(1, 1, 1)});
+    sphere.SetMaterial(resources.GetMaterial("metal"));
 
     cg::sphere_renderer sphere2 {};
     sphere2.SetRadius(0.1f);
-    sphere2.SetTransform({glm::vec3(0.2f, 0.0f, 0.0f),
+    sphere2.SetTransform({glm::vec3(0.3f, 0.05f, 0.0f),
                          glm::vec3(0, 0, 0),
                          glm::vec3(1, 1, 1)});
+    sphere2.SetMaterial(resources.GetMaterial("metal"));
 
     cg::sphere_renderer sphere3 {};
     sphere3.SetRadius(0.2f);
-    sphere3.SetTransform({glm::vec3(0.0f, 0.1f, -0.0f),
+    sphere3.SetTransform({glm::vec3(0.0f, 0.1f, 1.0f),
                           glm::vec3(0, 0, 0),
                           glm::vec3(1, 1, 1)});
+    sphere3.SetMaterial(resources.GetMaterial("metal"));
 
     cg::point_light point_light {};
-    point_light.SetColor(glm::vec3(1.f, 0.f, 0.f));
+    point_light.SetColor(glm::vec3(1.f, 0.25f, 0.f));
     point_light.SetTransform({glm::vec3(0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::point_light point_light2 {};
-    point_light2.SetColor(glm::vec3(0.f, 0.f, 1.f));
+    point_light2.SetColor(glm::vec3(0.f, 0.25f, 1.f));
     point_light2.SetTransform({glm::vec3(-0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::mesh_renderer box_renderer {};
-    box_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
+    box_renderer.SetTransform({glm::vec3(0.f, 0.5f, 0.0f),
                                glm::vec3(0, 45.f, 0),
-                               glm::vec3(0.1f, 0.1f, 0.1f)});
+                               glm::vec3(0.005f, 0.05f, 0.05f)});
     box_renderer.SetMesh(resources.GetMesh("box.glb"));
+    box_renderer.SetMaterial(resources.GetMaterial("blue"));
 
     cg::mesh_renderer monkey_renderer {};
-    monkey_renderer.SetTransform({glm::vec3(0.f, 0.f, 0.f),
+    monkey_renderer.SetTransform({glm::vec3(0.f, 0.05f, -0.1f),
                                glm::vec3(0, 180.f, 0),
                                glm::vec3(0.1f, 0.1f, 0.1f)});
     monkey_renderer.SetMesh(resources.GetMesh("monkey.glb"));
+    monkey_renderer.SetMaterial(resources.GetMaterial("white"));
 
     cg::scene scene_{};
     scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
-    /*
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
-
-     */
-
-    //scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
+    scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
     scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(monkey_renderer));
 
     scene_.AddLight(std::make_shared<cg::point_light>(point_light));
@@ -108,7 +119,7 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(0.f, 0.1f, -0.25f));
+    camera_.SetPosition(glm::vec3(0.f, 0.3f, -0.5f));
     camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
