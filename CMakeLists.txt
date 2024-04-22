@@ -96,6 +96,7 @@ add_executable(renderer "src/main.cpp"
         src/include/structures/bvh.h
         src/materials/material.cpp
         src/materials/material.h
+        src/include/geom.h
 )
 
 target_include_directories(renderer PRIVATE

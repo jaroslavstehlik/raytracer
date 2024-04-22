@@ -12,8 +12,13 @@ namespace cg {
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
             glm::vec3 local_intersection{};
             glm::vec3 local_normal{};
+            glm::vec2 local_uv{};
             float local_raycast_distance{};
-            if (renderer->Intersects(ray, local_intersection, local_normal, local_raycast_distance,
+            if (renderer->Intersects(ray,
+                                     local_intersection,
+                                     local_normal,
+                                     local_raycast_distance,
+                                     local_uv,
                                      max_raycast_distance)) {
                 return true;
             }
@@ -25,6 +30,7 @@ namespace cg {
                                      const cg::scene &scene,
                                      glm::vec3 &intersection,
                                      glm::vec3 &normal,
+                                     glm::vec2& uv,
                                      float max_raycast_distance,
                                      std::shared_ptr<cg::material>& material) {
         float shortest_intersection = std::numeric_limits<float>::max();
@@ -36,13 +42,20 @@ namespace cg {
         {
             glm::vec3 local_intersection{};
             glm::vec3 local_normal{};
+            glm::vec2 local_uv{};
             float local_raycast_distance{};
-            if (renderers[i]->Intersects(ray, local_intersection, local_normal, local_raycast_distance, max_raycast_distance)) {
+            if (renderers[i]->Intersects(ray,
+                                         local_intersection,
+                                         local_normal,
+                                         local_raycast_distance,
+                                         local_uv,
+                                         max_raycast_distance)) {
                 if (local_raycast_distance < shortest_intersection) {
                     intersected_renderer_index = i;
                     shortest_intersection = local_raycast_distance;
                     intersection = local_intersection;
                     normal = local_normal;
+                    uv = local_uv;
                 }
             }
         }
@@ -56,11 +69,15 @@ namespace cg {
     }
 
     void raytracer::Raycast(const cg::ray& ray, const cg::scene& scene, glm::vec3& accumulated_color,
-                 glm::vec3& intersection, glm::vec3& normal, int bounce_index,
-                 int max_bounces, float max_raycast_distance)
+                 glm::vec3& intersection,
+                 glm::vec3& normal,
+                 glm::vec2& uv,
+                 int bounce_index,
+                 int max_bounces,
+                 float max_raycast_distance)
     {
         std::shared_ptr<cg::material> material;
-        if (RaycastRenderers(ray, scene, intersection, normal, max_raycast_distance, material)) {
+        if (RaycastRenderers(ray, scene, intersection, normal, uv, max_raycast_distance, material)) {
             glm::vec3 albedo_color{};
             float rougness = 0.f;
             float metallic = 0.f;
@@ -84,7 +101,7 @@ namespace cg {
             if(metallic > 0.f && bounce_index < max_bounces)
             {
                 Raycast({intersection, normal}, scene, accumulated_color,
-                        intersection, normal, bounce_index + 1,
+                        intersection, normal, uv, bounce_index + 1,
                         max_bounces, max_raycast_distance);
             }
         }
@@ -95,7 +112,7 @@ namespace cg {
 
         // prepass renderers
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
-            renderer->RecalculateBounds();
+            renderer->Prepass();
         }
 
         const int total_pixels = width * height;
@@ -130,9 +147,10 @@ namespace cg {
             glm::vec3 accumulated_color{};
             glm::vec3 intersection{};
             glm::vec3 normal{};
+            glm::vec2 uv{};
             const int max_bounces = 3;
 
-            Raycast(ray, scene, accumulated_color, intersection, normal, 0, max_bounces, max_raycast_distance);
+            Raycast(ray, scene, accumulated_color, intersection, normal, uv, 0, max_bounces, max_raycast_distance);
 
             accumulated_color = glm::clamp(accumulated_color, 0.f, 1.f);
             output_data.emplace_back(accumulated_color.x * 255);

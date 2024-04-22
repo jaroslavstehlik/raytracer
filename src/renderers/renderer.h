@@ -23,7 +23,12 @@ namespace cg {
         const std::shared_ptr<cg::material>& GetMaterial() const;
 
         [[nodiscard]] virtual bool
-        Intersects(const ray &ray, glm::vec3 &intersection, glm::vec3 &normal, float& raycast_distance, float max_distance) const;
-        virtual void RecalculateBounds();
+        Intersects(const ray &ray,
+                   glm::vec3 &intersection,
+                   glm::vec3 &normal,
+                   float& raycast_distance,
+                   glm::vec2& uv,
+                   float max_distance) const;
+        virtual void Prepass();
     };
 }

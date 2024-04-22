@@ -11,7 +11,12 @@ void cg::mesh_renderer::SetMesh(const std::shared_ptr<cg::mesh> &mesh) {
     mesh_ = mesh;
 }
 
-bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
+bool cg::mesh_renderer::Intersects(const ray &ray,
+                                   glm::vec3& intersection,
+                                   glm::vec3& normal,
+                                   float& raycast_distance,
+                                   glm::vec2& uv,
+                                   float max_distance) const {
     if(!mesh_)
         return false;
 
@@ -19,7 +24,7 @@ bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm:
         return false;
 
     float nearest_raycast_distance = std::numeric_limits<float>::max();
-    if(!bvh.Intersect(ray, normal, nearest_raycast_distance))
+    if(!bvh.Intersect(ray, normal, nearest_raycast_distance, uv))
         return false;
 
     if(nearest_raycast_distance == std::numeric_limits<float>::max())
@@ -33,7 +38,7 @@ bool cg::mesh_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm:
     return true;
 }
 
-void cg::mesh_renderer::RecalculateBounds() {
+void cg::mesh_renderer::Prepass() {
 
     const std::span<const uint16_t> indexes = mesh_->GetIndexes();
     if(indexes.size() == 0)
@@ -44,6 +49,7 @@ void cg::mesh_renderer::RecalculateBounds() {
 
     const std::span<const glm::vec3> positions = mesh_->GetPositions();
     world_space_positions_.resize(positions.size());
+    world_space_normals_.resize(positions.size());
 
     const glm::mat4x4 objectToWorldMatrix = transform_.ObjectToWorldMatrix();
 
@@ -69,6 +75,11 @@ void cg::mesh_renderer::RecalculateBounds() {
         world_space_positions_[indexes[i + 0]] = v0;
         world_space_positions_[indexes[i + 1]] = v1;
         world_space_positions_[indexes[i + 2]] = v2;
+
+        glm::vec3 normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+        world_space_normals_[indexes[i + 0]] = normal;
+        world_space_normals_[indexes[i + 1]] = normal;
+        world_space_normals_[indexes[i + 2]] = normal;
     }
 
     bvh.Build(world_space_positions_, indexes);

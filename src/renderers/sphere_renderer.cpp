@@ -4,12 +4,18 @@
 
 #include "sphere_renderer.h"
 #include "algorithm"
+#include "math.h"
 
 void cg::sphere_renderer::SetRadius(float radius) {
     radius_ = radius;
 }
 
-bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
+bool cg::sphere_renderer::Intersects(const ray &ray,
+                                     glm::vec3& intersection,
+                                     glm::vec3& normal,
+                                     float& raycast_distance,
+                                     glm::vec2& uv,
+                                     float max_distance) const {
     // Analytical
 
     if(!bounds_.Intersects(ray, max_distance))
@@ -27,7 +33,7 @@ bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, gl
     if (radius2 <= distanceSqr)
         return false;
 
-    float intersectionDistance = sqrt(radius2 - distanceSqr);
+    float intersectionDistance = std::sqrtf(radius2 - distanceSqr);
     intersection = projectedPoint - ray.direction * intersectionDistance;
     glm::vec3 furthestIntersection = projectedPoint + ray.direction * intersectionDistance;
     raycast_distance = raySphereDotProduct - intersectionDistance;
@@ -40,7 +46,7 @@ bool cg::sphere_renderer::Intersects(const ray &ray, glm::vec3& intersection, gl
     return true;
 }
 
-void cg::sphere_renderer::RecalculateBounds() {
+void cg::sphere_renderer::Prepass() {
     bounds_.min = glm::vec3(transform_.position - glm::vec3(radius_, radius_, radius_));
     bounds_.max = glm::vec3(transform_.position + glm::vec3(radius_, radius_, radius_));
 }

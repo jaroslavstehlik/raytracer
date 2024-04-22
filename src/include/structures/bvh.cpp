@@ -1,5 +1,6 @@
 #include "bvh.h"
 #include "iostream"
+#include "geom.h"
 
 // https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/
 
@@ -13,71 +14,39 @@ namespace cg {
 // rights are reserved. No responsibility is accepted either.
 // For updates, follow me on twitter: @j_bikker.
 
-    // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-    bool bvh::IntersectTriangle(const cg::ray& ray,
-                           const glm::vec3& vertex0,
-                           const glm::vec3& vertex1,
-                           const glm::vec3& vertex2,
-                           float& raycast_distance) const {
-
-        constexpr float epsilon = std::numeric_limits<float>::epsilon();
-        const glm::vec3 edge1 = vertex1 - vertex0;
-        const glm::vec3 edge2 = vertex2 - vertex0;
-        const glm::vec3 ray_cross_e2 = cross(ray.direction, edge2);
-        const float det = dot(edge1, ray_cross_e2);
-        if (det > -epsilon && det < epsilon)
-            return false; // ray parallel to triangle
-
-        const float inv_det = 1 / det;
-        const glm::vec3 s = ray.origin - vertex0;
-        const float u = inv_det * dot(s, ray_cross_e2);
-        if (u < 0 || u > 1)
-            return false;
-
-        const glm::vec3 s_cross_e1 = cross(s, edge1);
-        const float v = inv_det * dot(ray.direction, s_cross_e1);
-        if (v < 0 || u + v > 1)
-            return false;
-
-        const float t = inv_det * dot(edge2, s_cross_e1);
-
-        if (t <= epsilon)
-            return false;
-
-        raycast_distance = t;
-        return true;
-    }
-
-    void bvh::IntersectBVH(const cg::ray &ray, const uint32_t nodeIdx, float& raycast_distance, uint32_t& out_nodeIdx) const {
+    void bvh::IntersectBVH(const cg::ray &ray, const uint32_t nodeIdx,
+                           float& raycast_distance, glm::vec2& uv, uint32_t& out_nodeIdx) const {
         const BVHNode &node = bvh_nodes[nodeIdx];
         if (!node.bounds.Intersects(ray, raycast_distance)) return;
         if (node.isLeaf()) {
             for (uint32_t i = 0; i < node.triCount; i++) {
                 int triangleIndex = triangle_indexes[node.leftFirst + i];
                 float local_distance = 0;
+                glm::vec2 local_uv{};
                 const cg::Tri& tri = triangles[triangleIndex];
-                if(IntersectTriangle(ray, tri.vertex0, tri.vertex1, tri.vertex2, local_distance))
+                if(cg::IntersectTriangle(ray, tri.vertex0, tri.vertex1, tri.vertex2, local_distance, local_uv))
                 {
                     if(local_distance < raycast_distance) {
                         raycast_distance = local_distance;
+                        uv = local_uv;
                         out_nodeIdx = triangleIndex;
                     }
                 }
             }
         } else {
-            IntersectBVH(ray, node.leftFirst, raycast_distance, out_nodeIdx);
-            IntersectBVH(ray, node.leftFirst + 1, raycast_distance, out_nodeIdx);
+            IntersectBVH(ray, node.leftFirst, raycast_distance, uv, out_nodeIdx);
+            IntersectBVH(ray, node.leftFirst + 1, raycast_distance, uv, out_nodeIdx);
         }
     }
 
-    bool bvh::Intersect(const cg::ray& ray, glm::vec3& normal, float& raycast_distance) const {
+    bool bvh::Intersect(const cg::ray& ray, glm::vec3& normal, float& raycast_distance, glm::vec2& uv) const {
         uint32_t idx = 0;
-        IntersectBVH(ray, 0, raycast_distance, idx);
+        IntersectBVH(ray, 0, raycast_distance, uv, idx);
         if(idx == 0)
             return false;
 
         const Tri& t = triangles[idx];
-        normal = glm::normalize(glm::cross(t.vertex1 - t.vertex0, t.vertex2 - t.vertex0));
+        normal = triangles[idx].normal;
         return true;
     }
 
@@ -87,7 +56,13 @@ namespace cg {
         for(int i = 0; i < triangle_count; i++)
         {
             int ti = i * 3;
-            triangles[i] = {positions[indexes[ti]], positions[indexes[ti + 1]], positions[indexes[ti + 2]]};
+            glm::vec3 v0 = positions[indexes[ti]];
+            glm::vec3 v1 = positions[indexes[ti + 1]];
+            glm::vec3 v2 = positions[indexes[ti + 2]];
+
+            triangles[i] = {v0, v1, v2,
+                            (v0 + v1 + v2) / 3.f,
+                            glm::normalize(glm::cross(v1 - v0, v2 - v0))};
         }
 
         triangle_indexes.resize(triangle_count);
@@ -97,10 +72,7 @@ namespace cg {
         for (int i = 0; i < triangle_count; i++) {
             triangle_indexes[i] = i;
         }
-        // calculate triangle centroids for partitioning
-        for (int i = 0; i < triangle_count; i++) {
-            triangles[i].centroid = (triangles[i].vertex0 + triangles[i].vertex1 + triangles[i].vertex2) * 0.3333f;
-        }
+
         // assign all triangles to root node
         BVHNode &root = bvh_nodes[rootNodeIdx];
         root.leftFirst = 0, root.triCount = triangle_count;

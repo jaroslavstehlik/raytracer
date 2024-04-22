@@ -79,13 +79,13 @@ int main() {
     sphere3.SetMaterial(resources.GetMaterial("metal"));
 
     cg::point_light point_light {};
-    point_light.SetColor(glm::vec3(1.f, 0.25f, 0.f));
+    point_light.SetColor(glm::vec3(1.f, 0.0f, 0.f));
     point_light.SetTransform({glm::vec3(0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
     cg::point_light point_light2 {};
-    point_light2.SetColor(glm::vec3(0.f, 0.25f, 1.f));
+    point_light2.SetColor(glm::vec3(0.f, 0.0f, 1.f));
     point_light2.SetTransform({glm::vec3(-0.5f, 0.3f, -1.f),
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});

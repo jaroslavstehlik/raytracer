@@ -19,8 +19,13 @@ const std::shared_ptr<cg::material>& cg::renderer::GetMaterial() const {
     return material_;
 }
 
-bool cg::renderer::Intersects(const ray &ray, glm::vec3& intersection, glm::vec3& normal, float& raycast_distance, float max_distance) const {
+bool cg::renderer::Intersects(const ray &ray,
+                              glm::vec3& intersection,
+                              glm::vec3& normal,
+                              float& raycast_distance,
+                              glm::vec2& uv,
+                              float max_distance) const {
     return false;
 }
 
-void cg::renderer::RecalculateBounds() {}
+void cg::renderer::Prepass() {}
