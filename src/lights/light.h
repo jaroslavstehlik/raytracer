@@ -15,6 +15,6 @@ namespace cg {
         void SetTransform(const transform &transform);
         const transform& GetTransform() const;
 
-        [[nodiscard]] virtual glm::vec3 GetColor(const ray &ray_, const glm::vec3& normal) const;
+        [[nodiscard]] virtual glm::vec4 GetColor(const ray &ray_, const glm::vec3& normal) const;
     };
 }

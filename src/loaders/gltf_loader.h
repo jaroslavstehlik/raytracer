@@ -13,11 +13,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "mesh.h"
+#include "../resources.h"
+#include "unique_id.h"
+#include "gltf_loader_result.h"
 
 namespace cg {
     class gltf_loader {
     public:
-        bool LoadModel(const std::string& path, cg::mesh& mesh) const;
+        gltf_loader_result LoadModel(const std::string& path, cg::resources& resources) const;
     };
 
 } // cg

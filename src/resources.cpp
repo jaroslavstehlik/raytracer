@@ -27,4 +27,16 @@ namespace cg {
 
         return materials_.at(name);
     }
+
+    void resources::AddTexture(const std::string& file_name, const std::shared_ptr<cg::texture>& texture) {
+        textures_[file_name] = texture;
+    }
+
+    const std::shared_ptr<cg::texture>& resources::GetTexture(const std::string& name) const
+    {
+        if(!textures_.contains(name))
+            return nullptr;
+
+        return textures_.at(name);
+    }
 }

@@ -7,11 +7,11 @@
 
 namespace cg {
     class point_light : public light {
-        glm::vec3 color_;
+        glm::vec4 color_;
         float fallof_;
 
     public:
-        void SetColor(const glm::vec3& color);
-        [[nodiscard]] glm::vec3 GetColor(const ray &ray_, const glm::vec3& normal) const override;
+        void SetColor(const glm::vec4& color);
+        [[nodiscard]] glm::vec4 GetColor(const ray &ray_, const glm::vec3& normal) const override;
     };
 }

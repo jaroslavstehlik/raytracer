@@ -2,6 +2,7 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
+#include "color.h"
 #include "raytracer.h"
 #include "materials/material.h"
 
@@ -12,12 +13,14 @@ namespace cg {
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
             glm::vec3 local_intersection{};
             glm::vec3 local_normal{};
+            glm::vec3 local_barycentric_coords{};
             glm::vec2 local_uv{};
             float local_raycast_distance{};
             if (renderer->Intersects(ray,
                                      local_intersection,
                                      local_normal,
                                      local_raycast_distance,
+                                     local_barycentric_coords,
                                      local_uv,
                                      max_raycast_distance)) {
                 return true;
@@ -42,12 +45,14 @@ namespace cg {
         {
             glm::vec3 local_intersection{};
             glm::vec3 local_normal{};
+            glm::vec3 local_barycentric_coords{};
             glm::vec2 local_uv{};
             float local_raycast_distance{};
             if (renderers[i]->Intersects(ray,
                                          local_intersection,
                                          local_normal,
                                          local_raycast_distance,
+                                         local_barycentric_coords,
                                          local_uv,
                                          max_raycast_distance)) {
                 if (local_raycast_distance < shortest_intersection) {
@@ -68,7 +73,7 @@ namespace cg {
         return shortest_intersection != std::numeric_limits<float>::max();
     }
 
-    void raytracer::Raycast(const cg::ray& ray, const cg::scene& scene, glm::vec3& accumulated_color,
+    void raytracer::Raycast(const cg::ray& ray, const cg::scene& scene, glm::vec4& accumulated_color,
                  glm::vec3& intersection,
                  glm::vec3& normal,
                  glm::vec2& uv,
@@ -78,14 +83,24 @@ namespace cg {
     {
         std::shared_ptr<cg::material> material;
         if (RaycastRenderers(ray, scene, intersection, normal, uv, max_raycast_distance, material)) {
-            glm::vec3 albedo_color{};
-            float rougness = 0.f;
+            glm::vec4 albedo_color{};
             float metallic = 0.f;
+            float rougness = 0.f;
 
             if(material) {
-                albedo_color = material->albedo;
-                rougness = material->roughness;
+                albedo_color = material->albedo_color;
                 metallic = material->metallic;
+                rougness = material->roughness;
+
+                const std::shared_ptr<cg::texture>& albedo_texture = material->albedo_texture;
+                if(albedo_texture) {
+                    albedo_color = albedo_texture->SampleColor(uv);
+                }
+                /*
+                albedo_color.x = uv.x;
+                albedo_color.y = uv.y;
+                albedo_color.z = 0.f;
+                */
             }
 
             for (const std::shared_ptr<cg::light> &light: scene.GetLights()) {
@@ -98,6 +113,9 @@ namespace cg {
                 }
             }
 
+            // unlit shading
+            //accumulated_color += albedo_color;
+
             if(metallic > 0.f && bounce_index < max_bounces)
             {
                 Raycast({intersection, normal}, scene, accumulated_color,
@@ -107,8 +125,13 @@ namespace cg {
         }
     }
 
-    void raytracer::RaycastCamera(const cg::scene &scene, const cg::camera &camera_, std::vector <u_char> &output_data,
-                       int width, int height, float max_raycast_distance) {
+    void raytracer::RaycastCamera(
+            const cg::scene &scene,
+            const cg::camera &camera_,
+            std::vector <u_char> &output_data,
+            int32_t width,
+            int32_t height,
+            float max_raycast_distance) {
 
         // prepass renderers
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
@@ -126,8 +149,8 @@ namespace cg {
             int x = i % width;
             int y = i / width;
 
-            // flip x and y
-            float xf = 1.f - ((float) x / (float) (width - 1)) * 2.f;
+            float xf = -1.f + ((float) x / (float) (width - 1)) * 2.f;
+            // flip y
             float yf = 1.f - ((float) y / (float) (height - 1)) * 2.f;
 
             glm::vec4 destNear = vpi * glm::vec4(xf, yf, -1.f, 1.f);
@@ -144,7 +167,7 @@ namespace cg {
             cg::ray ray{destNear, direction};
 
             // raycast
-            glm::vec3 accumulated_color{};
+            glm::vec4 accumulated_color{};
             glm::vec3 intersection{};
             glm::vec3 normal{};
             glm::vec2 uv{};
@@ -153,6 +176,11 @@ namespace cg {
             Raycast(ray, scene, accumulated_color, intersection, normal, uv, 0, max_bounces, max_raycast_distance);
 
             accumulated_color = glm::clamp(accumulated_color, 0.f, 1.f);
+
+            // gamma correction
+            float const gamma = 1.f / 2.2f;
+            accumulated_color = glm::pow(accumulated_color, {gamma, gamma, gamma, gamma});
+
             output_data.emplace_back(accumulated_color.x * 255);
             output_data.emplace_back(accumulated_color.y * 255);
             output_data.emplace_back(accumulated_color.z * 255);

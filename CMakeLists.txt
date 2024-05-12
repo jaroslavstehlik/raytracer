@@ -97,6 +97,11 @@ add_executable(renderer "src/main.cpp"
         src/materials/material.cpp
         src/materials/material.h
         src/include/geom.h
+        src/include/texture.h
+        src/include/unique_id.h
+        src/loaders/gltf_loader_result.h
+        src/renderers/intersection_result.h
+        src/include/color.h
 )
 
 target_include_directories(renderer PRIVATE

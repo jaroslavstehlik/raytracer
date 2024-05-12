@@ -15,6 +15,7 @@ bool cg::mesh_renderer::Intersects(const ray &ray,
                                    glm::vec3& intersection,
                                    glm::vec3& normal,
                                    float& raycast_distance,
+                                   glm::vec3& barycentric_coords,
                                    glm::vec2& uv,
                                    float max_distance) const {
     if(!mesh_)
@@ -24,21 +25,45 @@ bool cg::mesh_renderer::Intersects(const ray &ray,
         return false;
 
     float nearest_raycast_distance = std::numeric_limits<float>::max();
-    if(!bvh.Intersect(ray, normal, nearest_raycast_distance, uv))
+
+    Tri tri{};
+    if(!bvh.Intersect(ray, tri, nearest_raycast_distance, barycentric_coords))
         return false;
 
     if(nearest_raycast_distance == std::numeric_limits<float>::max())
         return false;
 
+    if(mesh_->IsNormalsValid()) {
+        normal = glm::normalize(cg::BarycentricInterpolate(
+                world_space_normals_[tri.vertex1],
+                world_space_normals_[tri.vertex2],
+                world_space_normals_[tri.vertex0],
+                barycentric_coords));
+    }
+
+    if(mesh_->IsTexcoord0Valid()) {
+        const auto uvs = mesh_->GetTexcoord0();
+
+        //TODO: texture mapping is not consistent with Blender and Unity
+        uv = cg::BarycentricInterpolate(
+                uvs[tri.vertex1],
+                uvs[tri.vertex2],
+                uvs[tri.vertex0],
+                barycentric_coords);
+
+        // flip Y
+        uv.y = 1.f - uv.y;
+    }
+
     raycast_distance = nearest_raycast_distance;
     // apply shadow bias to prevent shadow acne
     raycast_distance -= cg::kEpsilon;
     intersection = ray.origin + ray.direction * raycast_distance;
-    //normal = glm::normalize(glm::cross(fv1 - fv0, fv2 - fv0));
     return true;
 }
 
 void cg::mesh_renderer::Prepass() {
+    mesh_->Validate();
 
     const std::span<const uint16_t> indexes = mesh_->GetIndexes();
     if(indexes.size() == 0)
@@ -48,8 +73,9 @@ void cg::mesh_renderer::Prepass() {
     }
 
     const std::span<const glm::vec3> positions = mesh_->GetPositions();
+    const std::span<const glm::vec3> normals = mesh_->GetNormals();
     world_space_positions_.resize(positions.size());
-    world_space_normals_.resize(positions.size());
+    world_space_normals_.resize(normals.size());
 
     const glm::mat4x4 objectToWorldMatrix = transform_.ObjectToWorldMatrix();
 
@@ -76,10 +102,13 @@ void cg::mesh_renderer::Prepass() {
         world_space_positions_[indexes[i + 1]] = v1;
         world_space_positions_[indexes[i + 2]] = v2;
 
-        glm::vec3 normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        world_space_normals_[indexes[i + 0]] = normal;
-        world_space_normals_[indexes[i + 1]] = normal;
-        world_space_normals_[indexes[i + 2]] = normal;
+        const glm::vec3 n0 = normals[indexes[i + 0]];
+        const glm::vec3 n1 = normals[indexes[i + 1]];
+        const glm::vec3 n2 = normals[indexes[i + 2]];
+
+        world_space_normals_[indexes[i + 0]] = objectToWorldMatrix * glm::vec4(n0.x, n0.y, n0.z, 0.f);
+        world_space_normals_[indexes[i + 1]] = objectToWorldMatrix * glm::vec4(n1.x, n1.y, n1.z, 0.f);
+        world_space_normals_[indexes[i + 2]] = objectToWorldMatrix * glm::vec4(n2.x, n2.y, n2.z, 0.f);
     }
 
     bvh.Build(world_space_positions_, indexes);
@@ -91,4 +120,5 @@ void cg::mesh_renderer::Prepass() {
     myfile.close();
     std::cout << "wrote debug" << std::endl;
      */
+
 }

@@ -4,8 +4,7 @@
 
 #include "point_light.h"
 
-glm::vec3 cg::point_light::GetColor(const ray& ray_, const glm::vec3& normal) const {
-
+glm::vec4 cg::point_light::GetColor(const ray& ray_, const glm::vec3& normal) const {
     glm::vec3 light_direction = glm::normalize(transform_.position - ray_.origin);
     float light_distance = glm::distance(ray_.origin, transform_.position);
     float light = glm::max(0.f, glm::dot(normal, light_direction));
@@ -14,6 +13,6 @@ glm::vec3 cg::point_light::GetColor(const ray& ray_, const glm::vec3& normal) co
     return color_ * light * attenuation;
 }
 
-void cg::point_light::SetColor(const glm::vec3 &color) {
+void cg::point_light::SetColor(const glm::vec4 &color) {
     color_ = color;
 }

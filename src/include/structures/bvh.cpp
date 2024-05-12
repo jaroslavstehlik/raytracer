@@ -1,6 +1,5 @@
 #include "bvh.h"
 #include "iostream"
-#include "geom.h"
 
 // https://developer.nvidia.com/blog/thinking-parallel-part-ii-tree-traversal-gpu/
 
@@ -14,53 +13,68 @@ namespace cg {
 // rights are reserved. No responsibility is accepted either.
 // For updates, follow me on twitter: @j_bikker.
 
-    void bvh::IntersectBVH(const cg::ray &ray, const uint32_t nodeIdx,
-                           float& raycast_distance, glm::vec2& uv, uint32_t& out_nodeIdx) const {
+    void bvh::IntersectBVH(const cg::ray &ray,
+                           const uint32_t nodeIdx,
+                           float& raycast_distance,
+                           glm::vec3& barycentric_coords,
+                           uint32_t& out_nodeIdx) const {
+
         const BVHNode &node = bvh_nodes[nodeIdx];
         if (!node.bounds.Intersects(ray, raycast_distance)) return;
         if (node.isLeaf()) {
             for (uint32_t i = 0; i < node.triCount; i++) {
                 int triangleIndex = triangle_indexes[node.leftFirst + i];
                 float local_distance = 0;
-                glm::vec2 local_uv{};
+                glm::vec3 local_barycentric_coords{};
                 const cg::Tri& tri = triangles[triangleIndex];
-                if(cg::IntersectTriangle(ray, tri.vertex0, tri.vertex1, tri.vertex2, local_distance, local_uv))
+                if(cg::IntersectTriangle(
+                        ray,
+                        vertices[tri.vertex0],
+                        vertices[tri.vertex1],
+                        vertices[tri.vertex2],
+                        local_distance,
+                        local_barycentric_coords))
                 {
                     if(local_distance < raycast_distance) {
                         raycast_distance = local_distance;
-                        uv = local_uv;
+                        barycentric_coords = local_barycentric_coords;
                         out_nodeIdx = triangleIndex;
                     }
                 }
             }
         } else {
-            IntersectBVH(ray, node.leftFirst, raycast_distance, uv, out_nodeIdx);
-            IntersectBVH(ray, node.leftFirst + 1, raycast_distance, uv, out_nodeIdx);
+            IntersectBVH(ray, node.leftFirst, raycast_distance, barycentric_coords, out_nodeIdx);
+            IntersectBVH(ray, node.leftFirst + 1, raycast_distance, barycentric_coords, out_nodeIdx);
         }
     }
 
-    bool bvh::Intersect(const cg::ray& ray, glm::vec3& normal, float& raycast_distance, glm::vec2& uv) const {
+    bool bvh::Intersect(const cg::ray& ray,
+                        Tri& triangle,
+                        float& raycast_distance,
+                        glm::vec3& barycentric_coords) const {
         uint32_t idx = 0;
-        IntersectBVH(ray, 0, raycast_distance, uv, idx);
+        IntersectBVH(ray, 0, raycast_distance, barycentric_coords, idx);
         if(idx == 0)
             return false;
 
-        const Tri& t = triangles[idx];
-        normal = triangles[idx].normal;
+        triangle = triangles[idx];
         return true;
     }
 
     void bvh::Build(const std::span<const glm::vec3>& positions, const std::span<const uint16_t>& indexes) {
         const int triangle_count = indexes.size() / 3;
         triangles.resize(triangle_count);
+        vertices.resize(positions.size());
+
         for(int i = 0; i < triangle_count; i++)
         {
             int ti = i * 3;
-            glm::vec3 v0 = positions[indexes[ti]];
-            glm::vec3 v1 = positions[indexes[ti + 1]];
-            glm::vec3 v2 = positions[indexes[ti + 2]];
 
-            triangles[i] = {v0, v1, v2,
+            glm::vec3 v0 = vertices[indexes[ti]] = positions[indexes[ti]];
+            glm::vec3 v1 = vertices[indexes[ti + 1]] = positions[indexes[ti + 1]];
+            glm::vec3 v2 = vertices[indexes[ti + 2]] = positions[indexes[ti + 2]];
+
+            triangles[i] = {indexes[ti], indexes[ti + 1], indexes[ti + 2],
                             (v0 + v1 + v2) / 3.f,
                             glm::normalize(glm::cross(v1 - v0, v2 - v0))};
         }
@@ -88,10 +102,9 @@ namespace cg {
         for (uint32_t first = node.leftFirst, i = 0; i < node.triCount; i++) {
             uint32_t leafTriIdx = triangle_indexes[first + i];
             Tri &leafTri = triangles[leafTriIdx];
-
-            node.bounds.Expand(leafTri.vertex0);
-            node.bounds.Expand(leafTri.vertex1);
-            node.bounds.Expand(leafTri.vertex2);
+            node.bounds.Expand(vertices[leafTri.vertex0]);
+            node.bounds.Expand(vertices[leafTri.vertex1]);
+            node.bounds.Expand(vertices[leafTri.vertex2]);
         }
     }
 

@@ -12,6 +12,6 @@ const cg::transform &cg::light::GetTransform() const {
     return transform_;
 }
 
-glm::vec3 cg::light::GetColor(const ray& ray_, const glm::vec3& normal) const {
-    return glm::vec3();
+glm::vec4 cg::light::GetColor(const ray& ray_, const glm::vec3& normal) const {
+    return glm::vec4();
 }
