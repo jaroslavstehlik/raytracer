@@ -122,19 +122,21 @@ namespace cg {
                 for(const auto& [key, value] : primitive.attributes)
                 {
                     std::cout << "key: " << key << ", value: " << value <<  std::endl;
-                    if(key.compare("POSITION") == 0)
-                    {
+                    if(key.compare("POSITION") == 0) {
                         const tinygltf::Accessor &accessor = model.accessors[value];
-                        if(accessor.type == TINYGLTF_TYPE_VEC3 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
-                        {
+                        if(accessor.type == TINYGLTF_TYPE_VEC3 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
                             const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
                             const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
                             const glm::vec3* position_start = reinterpret_cast<const glm::vec3*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                            out_mesh->SetPositions(position_start, accessor.count);
+                            // Convert from right handed to left handed coordinate system
+                            std::vector<glm::vec3> positions = {position_start, position_start + accessor.count};
+                            for(glm::vec3& position : positions) {
+                                position.x *= -1.f;
+                            }
+                            out_mesh->SetPositions(positions.data(), accessor.count);
                         }
-                    } else if(key.compare("TEXCOORD_0") == 0)
-                    {
+                    } else if(key.compare("TEXCOORD_0") == 0) {
                         const tinygltf::Accessor &accessor = model.accessors[value];
                         if(accessor.type == TINYGLTF_TYPE_VEC2 && accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                         {

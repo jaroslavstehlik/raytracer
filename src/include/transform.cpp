@@ -7,7 +7,9 @@
 glm::mat4x4 cg::transform::TranslationMatrix() const {
     return glm::translate(
             glm::mat4x4(1.0),
-            glm::vec3 (position.x, position.y, position.z));
+            glm::vec3 (position.x,
+                       position.y,
+                       position.z));
 }
 
 glm::mat4x4 cg::transform::RotationMatrix() const {

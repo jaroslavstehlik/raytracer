@@ -85,6 +85,7 @@ int main() {
 
 
     cg::scene scene_{};
+
     scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
@@ -99,7 +100,7 @@ int main() {
     cg::gltf_loader_result box_loader_result = gltf_loader.LoadModel("box.glb", resources);
     if(box_loader_result.success) {
         cg::mesh_renderer box_renderer{};
-        box_renderer.SetTransform({glm::vec3(0.0f, 0.1f, 0.0f),
+        box_renderer.SetTransform({glm::vec3(1.0f, 0.1f, 0.0f),
                                    glm::vec3(0, 45.f, 0),
                                    glm::vec3(0.1f, 0.1f, 0.1f)});
 
@@ -120,7 +121,7 @@ int main() {
     cg::gltf_loader_result monkey_loader_result = gltf_loader.LoadModel("monkey.glb", resources);
     if(monkey_loader_result.success) {
         cg::mesh_renderer monkey_renderer{};
-        monkey_renderer.SetTransform({glm::vec3(0.f, 0.05f, -0.1f),
+        monkey_renderer.SetTransform({glm::vec3(0.1f, 0.05f, -0.1f),
                                       glm::vec3(0, 180.f, 0),
                                       glm::vec3(0.1f, 0.1f, 0.1f)});
 
@@ -141,8 +142,8 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(0.f, 0.3f, -0.5f));
-    camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
+    camera_.SetPosition(glm::vec3(-0.5f, 0.4f, -0.5f));
+    camera_.SetRotation(glm::vec3(25.0f, 45.0f, 45.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
     camera_.SetFarClipPlane(10.f);
@@ -151,16 +152,16 @@ int main() {
     // raycast camera
     std::vector<u_char> output_data{};
 
+    const int32_t channel_count = 3;
     cg::raytracer raytracer{};
 
     auto start = std::chrono::high_resolution_clock::now();
-    raytracer.RaycastCamera(scene_, camera_, output_data, width, height);
+    raytracer.RaycastCamera(scene_, camera_, output_data, width, height, channel_count);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = duration_cast<std::chrono::seconds>(stop - start);
     std::cout << "rendering took: " << duration.count() << "s" << std::endl;
 
     // save image to drive
-    const int32_t channel_count = 3;
     stbi_write_png("image.png", width, height, channel_count, output_data.data(), width * channel_count);
     return 0;
 }

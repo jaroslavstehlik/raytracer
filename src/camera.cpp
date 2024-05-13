@@ -56,13 +56,15 @@ glm::mat4x4 cg::camera::GetViewMatrix() const {
 
     glm::mat4x4 translate_matrix = glm::translate(
             glm::mat4x4(1.0),
-            glm::vec3 (position_.x, position_.y, position_.z));
+            glm::vec3 (-position_.x,
+                       -position_.y,
+                       -position_.z));
 
     // yaw, pitch, roll
-    glm::mat4x4 rotation_matrix = glm::eulerAngleYXZ(
+    glm::mat4x4 rotation_matrix = glm::inverse(glm::eulerAngleYXZ(
             glm::radians(rotation_.y),
             glm::radians(rotation_.x),
-            glm::radians(rotation_.z));
+            glm::radians(rotation_.z)));
 
     glm::mat4x4 scale_matrix = glm::scale(
             glm::mat4x4(1.0),
@@ -71,7 +73,7 @@ glm::mat4x4 cg::camera::GetViewMatrix() const {
             1.0f,
             -1.0f));
 
-    return translate_matrix * rotation_matrix * scale_matrix;
+    return scale_matrix * rotation_matrix * translate_matrix;
 }
 
 glm::mat4x4 cg::camera::GetProjectionMatrix() const {

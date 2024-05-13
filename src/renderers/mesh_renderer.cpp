@@ -44,7 +44,6 @@ bool cg::mesh_renderer::Intersects(const ray &ray,
     if(mesh_->IsTexcoord0Valid()) {
         const auto uvs = mesh_->GetTexcoord0();
 
-        //TODO: texture mapping is not consistent with Blender and Unity
         uv = cg::BarycentricInterpolate(
                 uvs[tri.vertex1],
                 uvs[tri.vertex2],

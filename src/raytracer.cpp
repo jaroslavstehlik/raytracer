@@ -96,6 +96,7 @@ namespace cg {
                 if(albedo_texture) {
                     albedo_color = albedo_texture->SampleColor(uv);
                 }
+                // Debug UVs
                 /*
                 albedo_color.x = uv.x;
                 albedo_color.y = uv.y;
@@ -103,6 +104,7 @@ namespace cg {
                 */
             }
 
+            // Light accumulation
             for (const std::shared_ptr<cg::light> &light: scene.GetLights()) {
                 glm::vec3 light_direction = glm::normalize(light->GetTransform().position - intersection);
                 float light_distance = glm::distance(light->GetTransform().position, intersection);
@@ -131,6 +133,7 @@ namespace cg {
             std::vector <u_char> &output_data,
             int32_t width,
             int32_t height,
+            int32_t channels,
             float max_raycast_distance) {
 
         // prepass renderers
@@ -139,18 +142,20 @@ namespace cg {
         }
 
         const int total_pixels = width * height;
+        output_data.resize(total_pixels * channels);
 
         glm::mat4x4 p = camera_.GetProjectionMatrix();
         glm::mat4x4 v = camera_.GetViewMatrix();
-        glm::mat4x4 pi = glm::inverse(p);
-        glm::mat4x4 vpi = v * pi;
+        glm::mat4x4 vp = p * v;
+
+        // from clip space to world space
+        glm::mat4x4 vpi = glm::inverse(vp);
 
         for (int i = 0; i < total_pixels; i++) {
             int x = i % width;
             int y = i / width;
 
             float xf = -1.f + ((float) x / (float) (width - 1)) * 2.f;
-            // flip y
             float yf = 1.f - ((float) y / (float) (height - 1)) * 2.f;
 
             glm::vec4 destNear = vpi * glm::vec4(xf, yf, -1.f, 1.f);
@@ -180,10 +185,11 @@ namespace cg {
             // gamma correction
             float const gamma = 1.f / 2.2f;
             accumulated_color = glm::pow(accumulated_color, {gamma, gamma, gamma, gamma});
+            const int j = (y * width + x) * channels;
 
-            output_data.emplace_back(accumulated_color.x * 255);
-            output_data.emplace_back(accumulated_color.y * 255);
-            output_data.emplace_back(accumulated_color.z * 255);
+            output_data[j + 0] = accumulated_color.x * 255;
+            output_data[j + 1] = accumulated_color.y * 255;
+            output_data[j + 2] = accumulated_color.z * 255;
         }
     }
 }

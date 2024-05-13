@@ -33,7 +33,12 @@ namespace cg {
                      int max_bounces, float max_raycast_distance);
 
     public:
-        void RaycastCamera(const cg::scene& scene_, const cg::camera& camera_, std::vector<u_char>& output_data,
-                           int width, int height, float max_raycast_distance = 10.f);
+        void RaycastCamera(const cg::scene& scene_,
+                           const cg::camera& camera_,
+                           std::vector<u_char>& output_data,
+                           int width,
+                           int height,
+                           int channels,
+                           float max_raycast_distance = 10.f);
     };
 }
