@@ -87,6 +87,7 @@ int main() {
     cg::scene scene_{};
 
     scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
+
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere2));
     scene_.AddRenderer(std::make_shared<cg::sphere_renderer>(sphere3));
@@ -100,7 +101,7 @@ int main() {
     cg::gltf_loader_result box_loader_result = gltf_loader.LoadModel("box.glb", resources);
     if(box_loader_result.success) {
         cg::mesh_renderer box_renderer{};
-        box_renderer.SetTransform({glm::vec3(1.0f, 0.1f, 0.0f),
+        box_renderer.SetTransform({glm::vec3(0.0f, 0.1f, 0.0f),
                                    glm::vec3(0, 45.f, 0),
                                    glm::vec3(0.1f, 0.1f, 0.1f)});
 
@@ -117,11 +118,32 @@ int main() {
         scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(box_renderer));
     }
 
+    // icosphere
+    cg::gltf_loader_result ico_loader_result = gltf_loader.LoadModel("ico.glb", resources);
+    if(ico_loader_result.success) {
+        cg::mesh_renderer ico_renderer{};
+        ico_renderer.SetTransform({glm::vec3(0.0f, 0.1f, 0.0f),
+                                   glm::vec3(0, 135.f, 0),
+                                   glm::vec3(0.1f, 0.1f, 0.1f)});
+
+        if(ico_loader_result.mesh_names.size() > 0) {
+            ico_renderer.SetMesh(resources.GetMesh(ico_loader_result.mesh_names[0]));
+        }
+
+        if (ico_loader_result.material_names.size() > 0) {
+            ico_renderer.SetMaterial(resources.GetMaterial(ico_loader_result.material_names[0]));
+        } else {
+            ico_renderer.SetMaterial(resources.GetMaterial("white"));
+        }
+
+        scene_.AddRenderer(std::make_shared<cg::mesh_renderer>(ico_renderer));
+    }
+
     // monkey
     cg::gltf_loader_result monkey_loader_result = gltf_loader.LoadModel("monkey.glb", resources);
     if(monkey_loader_result.success) {
         cg::mesh_renderer monkey_renderer{};
-        monkey_renderer.SetTransform({glm::vec3(0.1f, 0.05f, -0.1f),
+        monkey_renderer.SetTransform({glm::vec3(0.0f, 0.05f, -0.1f),
                                       glm::vec3(0, 180.f, 0),
                                       glm::vec3(0.1f, 0.1f, 0.1f)});
 
@@ -142,8 +164,8 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(-0.5f, 0.4f, -0.5f));
-    camera_.SetRotation(glm::vec3(25.0f, 45.0f, 45.0f));
+    camera_.SetPosition(glm::vec3(-0.f, 0.5f, -1.0f));
+    camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
     camera_.SetFarClipPlane(10.f);

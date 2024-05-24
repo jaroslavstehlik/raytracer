@@ -2,6 +2,11 @@
 // Created by Jaroslav Stehlik on 18.03.2024.
 //
 
+#define ACCUMULATE_LIGHTING
+// #define UNLIT_SHADING
+// #define DEBUG_NORMALS
+// #define DEBUG_UVS
+
 #include "color.h"
 #include "raytracer.h"
 #include "materials/material.h"
@@ -96,15 +101,19 @@ namespace cg {
                 if(albedo_texture) {
                     albedo_color = albedo_texture->SampleColor(uv);
                 }
-                // Debug UVs
-                /*
-                albedo_color.x = uv.x;
-                albedo_color.y = uv.y;
-                albedo_color.z = 0.f;
-                */
             }
 
-            // Light accumulation
+#if defined(DEBUG_NORMALS)
+            albedo_color.x = normal.x;
+            albedo_color.y = normal.y;
+            albedo_color.z = normal.z;
+#elif defined(DEBUG_UVS)
+            albedo_color.x = uv.x;
+            albedo_color.y = uv.y;
+            albedo_color.z = 0.f;
+#endif
+
+# if defined(ACCUMULATE_LIGHTING)
             for (const std::shared_ptr<cg::light> &light: scene.GetLights()) {
                 glm::vec3 light_direction = glm::normalize(light->GetTransform().position - intersection);
                 float light_distance = glm::distance(light->GetTransform().position, intersection);
@@ -114,9 +123,9 @@ namespace cg {
                     accumulated_color += albedo_color * light->GetColor(light_ray, normal);
                 }
             }
-
-            // unlit shading
-            //accumulated_color += albedo_color;
+#elif defined(UNLIT_SHADING)
+            accumulated_color += albedo_color;
+#endif
 
             if(metallic > 0.f && bounce_index < max_bounces)
             {

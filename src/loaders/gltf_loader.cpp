@@ -134,7 +134,7 @@ namespace cg {
                             for(glm::vec3& position : positions) {
                                 position.x *= -1.f;
                             }
-                            out_mesh->SetPositions(positions.data(), accessor.count);
+                            out_mesh->SetPositions(positions.data(), positions.size());
                         }
                     } else if(key.compare("TEXCOORD_0") == 0) {
                         const tinygltf::Accessor &accessor = model.accessors[value];
@@ -155,7 +155,13 @@ namespace cg {
                             const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
                             const glm::vec3* normals_start = reinterpret_cast<const glm::vec3*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-                            out_mesh->SetNormals(normals_start, accessor.count);
+                            // Convert from right handed to left handed coordinate system
+                            std::vector<glm::vec3> normals = {normals_start, normals_start + accessor.count};
+                            for(glm::vec3& normal : normals) {
+                                normal.x *= -1.f;
+                            }
+
+                            out_mesh->SetNormals(normals.data(), normals.size());
                         }
                     }
                 }

@@ -5,6 +5,7 @@
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 
+// TODO: unused struct
 namespace cg {
     struct intersection_result {
         glm::vec3 intersection;
