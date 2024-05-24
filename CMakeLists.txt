@@ -102,6 +102,7 @@ add_executable(renderer "src/main.cpp"
         src/loaders/gltf_loader_result.h
         src/renderers/intersection_result.h
         src/include/color.h
+        src/include/random.h
 )
 
 target_include_directories(renderer PRIVATE

@@ -149,7 +149,8 @@ namespace cg {
             int32_t width,
             int32_t height,
             int32_t channels,
-            float max_raycast_distance) {
+            float max_raycast_distance,
+            int samples_per_pixel) {
 
         // prepass renderers
         for (const std::shared_ptr <cg::renderer> &renderer: scene.GetRenderers()) {
@@ -166,42 +167,54 @@ namespace cg {
         // from clip space to world space
         glm::mat4x4 vpi = glm::inverse(vp);
 
+        glm::vec2 texel_size{1.f / (float)width, 1.f / (float)height};
         for (int i = 0; i < total_pixels; i++) {
             int x = i % width;
             int y = i / width;
 
-            float xf = -1.f + ((float) x / (float) (width - 1)) * 2.f;
-            float yf = 1.f - ((float) y / (float) (height - 1)) * 2.f;
-
-            glm::vec4 destNear = vpi * glm::vec4(xf, yf, -1.f, 1.f);
-            destNear.x /= destNear.w;
-            destNear.y /= destNear.w;
-            destNear.z /= destNear.w;
-
-            glm::vec4 destFar = vpi * glm::vec4(xf, yf, 1.f, 1.f);
-            destFar.x /= destFar.w;
-            destFar.y /= destFar.w;
-            destFar.z /= destFar.w;
-
-            glm::vec3 direction = glm::normalize(glm::vec3(destFar) - glm::vec3(destNear));
-            cg::ray ray{destNear, direction};
-
-            // raycast
             glm::vec4 accumulated_color{};
-            glm::vec3 intersection{};
-            glm::vec3 normal{};
-            glm::vec2 uv{};
-            const int max_bounces = 3;
 
-            Raycast(ray, scene, accumulated_color, intersection, normal, uv, 0, max_bounces, max_raycast_distance);
+            for(int j = 0; j < samples_per_pixel; j++) {
+                glm::vec2 sample_position {
+                        -1.f + ((float) x / (float) (width - 1)) * 2.f,
+                        1.f - ((float) y / (float) (height - 1)) * 2.f
+                };
 
-            accumulated_color = glm::clamp(accumulated_color, 0.f, 1.f);
+                // Apply random sampling
+                if(samples_per_pixel > 1)
+                    sample_position += RandomPositionInsideUnitDisc() * texel_size;
+
+                glm::vec4 destNear = vpi * glm::vec4(sample_position.x, sample_position.y, -1.f, 1.f);
+                destNear.x /= destNear.w;
+                destNear.y /= destNear.w;
+                destNear.z /= destNear.w;
+
+                glm::vec4 destFar = vpi * glm::vec4(sample_position.x, sample_position.y, 1.f, 1.f);
+                destFar.x /= destFar.w;
+                destFar.y /= destFar.w;
+                destFar.z /= destFar.w;
+
+                glm::vec3 direction = glm::normalize(glm::vec3(destFar) - glm::vec3(destNear));
+                cg::ray ray{destNear, direction};
+
+                // raycast
+                glm::vec3 intersection{};
+                glm::vec3 normal{};
+                glm::vec2 uv{};
+                const int max_bounces = 3;
+
+                Raycast(ray, scene, accumulated_color, intersection, normal, uv, 0, max_bounces, max_raycast_distance);
+            }
+
+            // Average by samples
+            accumulated_color /= (float)samples_per_pixel;
 
             // gamma correction
             float const gamma = 1.f / 2.2f;
             accumulated_color = glm::pow(accumulated_color, {gamma, gamma, gamma, gamma});
-            const int j = (y * width + x) * channels;
+            accumulated_color = glm::clamp(accumulated_color, 0.f, 1.f);
 
+            const int j = (y * width + x) * channels;
             output_data[j + 0] = accumulated_color.x * 255;
             output_data[j + 1] = accumulated_color.y * 255;
             output_data[j + 2] = accumulated_color.z * 255;

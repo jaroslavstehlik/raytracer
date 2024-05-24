@@ -84,8 +84,6 @@ int main() {
                               glm::vec3(0, 0, 0),
                               glm::vec3(1, 1, 1)});
 
-
-
     cg::scene scene_{};
 
     scene_.AddRenderer(std::make_shared<cg::plane_renderer>(plane));
@@ -166,7 +164,7 @@ int main() {
     const int32_t height = 512;
 
     cg::camera camera_{};
-    camera_.SetPosition(glm::vec3(-0.f, 0.5f, -1.0f));
+    camera_.SetPosition(glm::vec3(-0.f, 0.25f, -0.5f));
     camera_.SetRotation(glm::vec3(25.0f, 0.0f, 0.0f));
     camera_.SetAspectRatio((float)width / (float)height);
     camera_.SetNearClipPlane(0.1f);
@@ -180,7 +178,7 @@ int main() {
     cg::raytracer raytracer{};
 
     auto start = std::chrono::high_resolution_clock::now();
-    raytracer.RaycastCamera(scene_, camera_, output_data, width, height, channel_count);
+    raytracer.RaycastCamera(scene_, camera_, output_data, width, height, channel_count, 10.f, 4);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = duration_cast<std::chrono::seconds>(stop - start);
     std::cout << "rendering took: " << duration.count() << "s" << std::endl;

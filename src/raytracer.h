@@ -4,6 +4,7 @@
 
 #pragma once
 #include <locale>
+#include "random.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/vec3.hpp"
@@ -39,6 +40,7 @@ namespace cg {
                            int width,
                            int height,
                            int channels,
-                           float max_raycast_distance = 10.f);
+                           float max_raycast_distance = 10.f,
+                           int samples_per_pixel = 1);
     };
 }
