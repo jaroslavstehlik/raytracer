@@ -61,6 +61,7 @@ namespace cg {
 
             std::string base_color_texture_name{};
             glm::vec4 albedo_color = {1, 1, 1, 1};
+            glm::vec3 emission_color = {0, 0, 0};
             float metallic = 0;
             float rougness = 0;
             for(const auto& key_value : material.values)
@@ -92,7 +93,13 @@ namespace cg {
 
             printf("metallic: %s\n", std::to_string(metallic).c_str());
             printf("rougness: %s\n", std::to_string(rougness).c_str());
-            std::shared_ptr<cg::material> out_material = std::make_shared<cg::material>(resources.GetTexture(base_color_texture_name), albedo_color, metallic, rougness);
+            std::shared_ptr<cg::material> out_material = std::make_shared<cg::material>(
+                    resources.GetTexture(base_color_texture_name),
+                    albedo_color,
+                    emission_color,
+                    metallic,
+                    rougness);
+
             std::string material_name = path+"."+material.name;
             resources.AddMaterial(material_name, out_material);
             result.material_names.push_back(material_name);

@@ -89,11 +89,13 @@ namespace cg {
         std::shared_ptr<cg::material> material;
         if (RaycastRenderers(ray, scene, intersection, normal, uv, max_raycast_distance, material)) {
             glm::vec4 albedo_color{};
+            glm::vec3 emission_color{};
             float metallic = 0.f;
             float rougness = 0.f;
 
             if(material) {
                 albedo_color = material->albedo_color;
+                emission_color = material->emission_color;
                 metallic = material->metallic;
                 rougness = material->roughness;
 
@@ -102,6 +104,10 @@ namespace cg {
                     albedo_color = albedo_texture->SampleColor(uv);
                 }
             }
+
+            accumulated_color.x += emission_color.x;
+            accumulated_color.y += emission_color.y;
+            accumulated_color.z += emission_color.z;
 
 #if defined(DEBUG_NORMALS)
             albedo_color.x = normal.x;

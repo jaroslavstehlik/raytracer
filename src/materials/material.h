@@ -10,9 +10,14 @@
 namespace cg {
     class material {
     public:
-        material(const std::shared_ptr<cg::texture>& albedo_texture, const glm::vec4& albedo_color, float metallic, float roughness);
+        material(const std::shared_ptr<cg::texture>& albedo_texture,
+                 const glm::vec4& albedo_color,
+                 const glm::vec3& emission_color,
+                 float metallic,
+                 float roughness);
         std::shared_ptr<cg::texture> albedo_texture;
         glm::vec4 albedo_color;
+        glm::vec3 emission_color;
         float metallic;
         float roughness;
     };

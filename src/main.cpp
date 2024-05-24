@@ -31,14 +31,16 @@ int main() {
 
     cg::resources resources{};
 
-    cg::material white_material{nullptr, glm::vec4(1.f, 1.f, 1.f, 1.f), 0.f, 1.f};
-    cg::material blue_material{nullptr, glm::vec4(0.f, 0.f, 1.f, 1.f), 0.f, 1.f};
-    cg::material red_material{nullptr, glm::vec4(1.f, 0.f, 0.f, 1.f), 0.f, 1.f};
-    cg::material metal_material{nullptr, glm::vec4(0.1f, 0.1f, 0.1f, 1.f), 1.f, 0.f};
+    cg::material white_material{nullptr, glm::vec4(1.f, 1.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f), 0.f, 1.f};
+    cg::material blue_material{nullptr, glm::vec4(0.f, 0.f, 1.f, 1.f), glm::vec3(0.f, 0.f, 0.f),  0.f, 1.f};
+    cg::material red_material{nullptr, glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 0.f),  0.f, 1.f};
+    cg::material metal_material{nullptr, glm::vec4(0.1f, 0.1f, 0.1f, 1.f), glm::vec3(0.f, 0.f, 0.f), 1.f, 0.f};
+    cg::material emissive_material{nullptr, glm::vec4(0.0f, 0.0f, 0.0f, 1.f), glm::vec3(1.f, 0.f, 0.f), 0.f, 0.f};
     resources.AddMaterial("white", std::make_shared<cg::material>(white_material));
     resources.AddMaterial("blue", std::make_shared<cg::material>(blue_material));
     resources.AddMaterial("red", std::make_shared<cg::material>(red_material));
     resources.AddMaterial("metal", std::make_shared<cg::material>(metal_material));
+    resources.AddMaterial("emissive", std::make_shared<cg::material>(emissive_material));
 
     // setup scene
     cg::plane_renderer plane {};
@@ -66,7 +68,7 @@ int main() {
     sphere3.SetTransform({glm::vec3(0.0f, 0.1f, 1.0f),
                           glm::vec3(0, 0, 0),
                           glm::vec3(1, 1, 1)});
-    sphere3.SetMaterial(resources.GetMaterial("metal"));
+    sphere3.SetMaterial(resources.GetMaterial("emissive"));
 
     cg::point_light point_light {};
     point_light.SetColor(glm::vec4(1.f, 0.0f, 0.f, 1.f));
