@@ -11,9 +11,10 @@
 #include "glm/mat4x4.hpp"
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#include "geom.h"
 #include "scene.h"
 #include "camera.h"
+
 namespace cg {
     class raytracer {
     private:

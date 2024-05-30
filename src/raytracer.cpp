@@ -135,7 +135,8 @@ namespace cg {
 
             if(metallic > 0.f && bounce_index < max_bounces)
             {
-                Raycast({intersection, normal}, scene, accumulated_color,
+                const glm::vec3 reflected_normal = cg::Reflect(ray.direction, normal);
+                Raycast({intersection, reflected_normal}, scene, accumulated_color,
                         intersection, normal, uv, bounce_index + 1,
                         max_bounces, max_raycast_distance);
             }

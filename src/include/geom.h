@@ -27,6 +27,12 @@ namespace cg
         return barycentric_coords.x * a + barycentric_coords.y * b + barycentric_coords.z * c;
     }
 
+    inline glm::vec3 Reflect(const glm::vec3& direction, const glm::vec3& normal)
+    {
+        // 𝑟 = 𝑑−2(𝑑⋅𝑛)𝑛
+        return direction - 2.f * glm::dot(direction, normal) * normal;
+    }
+
     // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
     inline bool IntersectTriangle(const cg::ray& ray,
                                 const glm::vec3& vertex0,
